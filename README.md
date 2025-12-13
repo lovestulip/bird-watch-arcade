@@ -78,9 +78,31 @@ python3 -m http.server 5173
 Then open
 `http://localhost:5173`
 
-To manually test tracking in browser console:
+---
 
-`posthog.capture('debug_test_event', { source: 'localhost' })`
+## 🧪 Debugging Analytics with a Test Event
+
+Send a manual test event from the browser console to confirm PostHog is wired
+up correctly.
+
+**How to send it**
+
+1. Open the game in your browser.
+2. Open Developer Tools → Console.
+3. Run:
+
+```js
+posthog.capture('debug_test_event', { from: 'console' })
+```
+
+**How to find it in PostHog**
+
+1. Go to PostHog → Activity.
+2. In the event search bar, type `debug_test_event`.
+3. Select the event to view its properties (you should see `from: "console"`).
+
+Seeing that event confirms PostHog initialization works, the network request
+is not blocked, and your project is receiving events from this build.
 
 ---
 Have fun — and watch out for snakes 🐍
