@@ -1,0 +1,328 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bird Watch 🦩 | The Baby Flamingo</title>
+
+  <!-- PostHog init (your existing project) -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister getFeatureFlag isFeatureEnabled reloadFeatureFlags onFeatureFlags identify reset get_distinct_id get_session_id startSessionRecording stopSessionRecording".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init("phc_DQJyMgMb9vXZWTjaEnrZ5ANFvxuw0u9VOsqBTZy8XDM", {
+      api_host: "https://us.i.posthog.com",
+      person_profiles: "identified_only",
+    });
+  </script>
+
+  <style>
+    :root {
+      --bg1: #ffffff;
+      --bg2: #faf7ff;
+      --card: #ffffff;
+      --border: #eeeeee;
+      --text: #111111;
+      --muted: #666666;
+      --shadow: rgba(0,0,0,.10);
+    }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      margin: 0;
+      background: radial-gradient(1200px 600px at 30% 0%, #fff2ff, #ffffff);
+      color: var(--text);
+    }
+
+    .wrap { max-width: 920px; margin: 0 auto; padding: 22px 16px 30px; }
+    .top { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    h1 { font-size: 26px; margin: 0; letter-spacing: -0.02em; }
+    .muted { color: var(--muted); margin: 6px 0 0; }
+
+    .hud {
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .pill {
+      display:inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255,255,255,.8);
+      box-shadow: 0 8px 22px rgba(0,0,0,.05);
+      font-weight: 700;
+    }
+
+    .pill span.label { font-weight: 600; color: var(--muted); }
+    .pill span.value { font-weight: 800; }
+
+    .btn {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      background: white;
+      font-weight: 800;
+      box-shadow: 0 10px 24px rgba(0,0,0,.08);
+      transition: transform .08s ease, box-shadow .08s ease, filter .08s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: scale(.98); filter: brightness(1.02); }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      margin-top: 14px;
+      background: linear-gradient(180deg, var(--bg1), var(--bg2));
+      box-shadow: 0 14px 30px rgba(0,0,0,.06);
+    }
+
+    .tiles {
+      display:flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .tile {
+      font-size: 38px;
+      padding: 14px 16px;
+      min-width: 74px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: white;
+      cursor: pointer;
+      box-shadow: 0 10px 24px var(--shadow);
+      transition: transform .08s ease, box-shadow .08s ease, filter .08s ease;
+      user-select: none;
+    }
+    .tile:hover { transform: translateY(-2px); }
+    .tile:active { transform: scale(0.96); filter: brightness(1.06); }
+
+    @keyframes pop { from { transform: scale(.92); opacity:0; } to { transform: scale(1); opacity:1; } }
+    .pop { animation: pop .12s ease-out; }
+
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-3px)} 75%{transform:translateX(3px)} }
+    .shake { animation: shake .12s ease-in-out; }
+
+    #hint { min-height: 24px; margin: 0; color: var(--muted); font-weight: 600; }
+
+    .legend {
+      display:flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .legend code {
+      background: rgba(0,0,0,.04);
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,.06);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>Bird Watch Arcade 🦩</h1>
+        <p class="muted">Tap birds to score. Build combo for multipliers. 🐍 resets combo. 🪺 boosts combo.</p>
+      </div>
+    </div>
+
+    <div class="hud">
+      <button class="btn" id="start">Start (30s)</button>
+
+      <div class="pill"><span class="label">Score</span> <span class="value" id="score">0</span></div>
+      <div class="pill"><span class="label">Combo</span> <span class="value" id="combo">0</span></div>
+      <div class="pill"><span class="label">Mult</span> <span class="value">x<span id="mult">1</span></span></div>
+      <div class="pill"><span class="label">Time</span> <span class="value"><span id="time">0</span>s</span></div>
+    </div>
+
+    <div class="card">
+      <div class="tiles" id="tiles"></div>
+      <p id="hint">Hit Start to begin.</p>
+
+      <div class="legend">
+        <span>Events:</span>
+        <code>game_start</code>
+        <code>tap_bird</code>
+        <code>combo_milestone</code>
+        <code>game_over</code>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ITEMS = [
+      { type: "flamingo", emoji: "🦩", points: 15 }, // hype
+      { type: "eagle",    emoji: "🦅", points: 9  },
+      { type: "owl",      emoji: "🦉", points: 7  },
+      { type: "duck",     emoji: "🦆", points: 5  },
+      { type: "nest",     emoji: "🪺", points: 4, bonusCombo: true },
+      { type: "snake",    emoji: "🐍", points: -10 } // bad
+    ];
+
+    let playing = false;
+    let score = 0;
+    let combo = 0;
+    let timeLeft = 0;
+    let timer = null;
+    let startTs = null;
+    let maxCombo = 0;
+
+    const $score = document.getElementById("score");
+    const $combo = document.getElementById("combo");
+    const $mult  = document.getElementById("mult");
+    const $time  = document.getElementById("time");
+    const $tiles = document.getElementById("tiles");
+    const $hint  = document.getElementById("hint");
+
+    function getMultiplier(c) {
+      if (c >= 15) return 4;
+      if (c >= 10) return 3;
+      if (c >= 5)  return 2;
+      return 1;
+    }
+
+    function setUI() {
+      $score.textContent = score;
+      $combo.textContent = combo;
+      $time.textContent  = timeLeft;
+      $mult.textContent  = getMultiplier(combo);
+    }
+
+    function weightedPick() {
+      // Arcade rarity: flamingo rare, snake uncommon, nest moderate
+      const r = Math.random();
+      if (r < 0.08) return ITEMS.find(i => i.type === "flamingo"); // 8%
+      if (r < 0.16) return ITEMS.find(i => i.type === "snake");    // 8%
+      if (r < 0.36) return ITEMS.find(i => i.type === "nest");     // 20%
+
+      const common = ITEMS.filter(i => ["eagle","owl","duck"].includes(i.type));
+      return common[Math.floor(Math.random() * common.length)];
+    }
+
+    function pickTiles() {
+      $tiles.innerHTML = "";
+      const picks = Array.from({ length: 4 }, () => weightedPick());
+
+      picks.forEach(item => {
+        const btn = document.createElement("button");
+        btn.className = "tile pop";
+        btn.textContent = item.emoji;
+        btn.title = `${item.type} (${item.points})`;
+        btn.onclick = () => tap(item, btn);
+        $tiles.appendChild(btn);
+      });
+
+      if (picks.some(p => p.type === "flamingo")) {
+        $hint.textContent = "🦩 FLAMINGO SPOTTED! GO GO GO!";
+      }
+    }
+
+    function startGame() {
+      if (playing) return;
+      playing = true;
+
+      score = 0;
+      combo = 0;
+      maxCombo = 0;
+      timeLeft = 30;
+      startTs = Date.now();
+
+      setUI();
+      pickTiles();
+      $hint.textContent = "Tap birds to score. Build combo for multipliers.";
+
+      posthog.capture("game_start", {
+        game: "bird_watch_arcade",
+        site: "thebabyflamingo",
+        duration_s: 30
+      });
+
+      // Arcade cadence: tiles refresh on a steady beat, not on click
+      timer = setInterval(() => {
+        timeLeft -= 1;
+        setUI();
+
+        if (timeLeft <= 0) {
+          endGame();
+          return;
+        }
+
+        pickTiles();
+      }, 1000);
+    }
+
+    function tap(item, btnEl) {
+      if (!playing) return;
+
+      if (item.points < 0) {
+        combo = 0;
+        if (btnEl) btnEl.classList.add("shake");
+        $hint.textContent = "🐍 Oof! Combo reset.";
+      } else {
+        combo += 1;
+        if (item.bonusCombo) combo += 1;
+      }
+
+      maxCombo = Math.max(maxCombo, combo);
+
+      const mult = getMultiplier(combo);
+      const gained = item.points * mult;
+      score += gained;
+
+      // quick hit feedback
+      if (btnEl) {
+        btnEl.style.transform = "scale(1.06)";
+        setTimeout(() => (btnEl.style.transform = ""), 80);
+      }
+
+      posthog.capture("tap_bird", {
+        bird_type: item.type,
+        base_points: item.points,
+        multiplier: mult,
+        points_gained: gained,
+        score,
+        combo
+      });
+
+      if ([5, 10, 15].includes(combo)) {
+        posthog.capture("combo_milestone", { combo, score });
+        $hint.textContent = `🔥 Combo ${combo}! Multiplier x${mult}`;
+      }
+
+      setUI();
+    }
+
+    function endGame() {
+      if (!playing) return;
+      playing = false;
+      clearInterval(timer);
+
+      const session_s = Math.round((Date.now() - startTs) / 1000);
+
+      posthog.capture("game_over", {
+        game: "bird_watch_arcade",
+        final_score: score,
+        max_combo: maxCombo,
+        session_s
+      });
+
+      $hint.textContent = `Game over. Final score: ${score}. Hit Start to play again.`;
+    }
+
+    document.getElementById("start").onclick = startGame;
+    setUI();
+  </script>
+</body>
+</html>
