@@ -1,328 +1,237 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Bird Watch 🦩 | The Baby Flamingo</title>
-
-  <!-- PostHog init (your existing project) -->
-  <script>
-    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister getFeatureFlag isFeatureEnabled reloadFeatureFlags onFeatureFlags identify reset get_distinct_id get_session_id startSessionRecording stopSessionRecording".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-    posthog.init("phc_DQJyMgMb9vXZWTjaEnrZ5ANFvxuw0u9VOsqBTZy8XDM", {
-      api_host: "https://us.i.posthog.com",
-      person_profiles: "identified_only",
-    });
-  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Bird Watch Arcade 🦩</title>
 
   <style>
     :root {
-      --bg1: #ffffff;
-      --bg2: #faf7ff;
-      --card: #ffffff;
-      --border: #eeeeee;
-      --text: #111111;
-      --muted: #666666;
-      --shadow: rgba(0,0,0,.10);
+      --bg1:#fff6fb; --bg2:#eef7ff; --card:rgba(255,255,255,.75);
+      --stroke:rgba(30,41,59,.12); --text:#0f172a; --muted:rgba(15,23,42,.65);
+      --shadow:0 18px 55px rgba(15,23,42,.12); --radius:20px;
     }
 
-    body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      margin: 0;
-      background: radial-gradient(1200px 600px at 30% 0%, #fff2ff, #ffffff);
-      color: var(--text);
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto;
+      background:
+        radial-gradient(1200px 700px at 15% 10%,var(--bg1),transparent 60%),
+        radial-gradient(900px 600px at 80% 20%,var(--bg2),transparent 60%),
+        linear-gradient(180deg,#fff,#f7f7ff);
+      display:grid; place-items:center; padding:16px;
+      color:var(--text);
     }
 
-    .wrap { max-width: 920px; margin: 0 auto; padding: 22px 16px 30px; }
-    .top { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-    h1 { font-size: 26px; margin: 0; letter-spacing: -0.02em; }
-    .muted { color: var(--muted); margin: 6px 0 0; }
+    .wrap{width:min(560px,100%)}
+    h1{margin:0;font-size:22px}
+    .rules{font-size:13.5px;color:var(--muted);margin-top:6px}
 
-    .hud {
-      display:flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-top: 14px;
+    .hud{
+      display:grid; grid-template-columns:repeat(3,1fr);
+      gap:10px; margin:14px 0;
+    }
+    .pill{
+      background:var(--card); border:1px solid var(--stroke);
+      border-radius:999px; padding:10px;
+      display:flex; gap:6px; justify-content:center;
+      font-weight:700;
     }
 
-    .pill {
-      display:inline-flex;
-      gap: 8px;
-      align-items: center;
-      padding: 8px 12px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: rgba(255,255,255,.8);
-      box-shadow: 0 8px 22px rgba(0,0,0,.05);
-      font-weight: 700;
+    .panel{
+      background:var(--card); border:1px solid var(--stroke);
+      border-radius:var(--radius); padding:14px;
+      box-shadow:var(--shadow); backdrop-filter:blur(10px);
     }
 
-    .pill span.label { font-weight: 600; color: var(--muted); }
-    .pill span.value { font-weight: 800; }
-
-    .btn {
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      background: white;
-      font-weight: 800;
-      box-shadow: 0 10px 24px rgba(0,0,0,.08);
-      transition: transform .08s ease, box-shadow .08s ease, filter .08s ease;
+    .topbar{display:flex;justify-content:space-between;align-items:center}
+    .btn{
+      border:1px solid rgba(99,102,241,.25);
+      background:linear-gradient(180deg,#fff,#f3f4ff);
+      padding:10px 12px;border-radius:12px;
+      font-weight:800; cursor:pointer;
     }
-    .btn:hover { transform: translateY(-1px); }
-    .btn:active { transform: scale(.98); filter: brightness(1.02); }
+    .btn[disabled]{opacity:.5}
 
-    .card {
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 16px;
-      margin-top: 14px;
-      background: linear-gradient(180deg, var(--bg1), var(--bg2));
-      box-shadow: 0 14px 30px rgba(0,0,0,.06);
+    .status{font-size:13px;color:var(--muted)}
+
+    /* 3 across grid */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:12px; margin-top:12px;
     }
 
-    .tiles {
-      display:flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
+    .tile{
+      height:84px; border-radius:16px;
+      background:rgba(255,255,255,.7);
+      border:1px solid var(--stroke);
+      display:grid; place-items:center;
+      position:relative; cursor:pointer;
+      transition:transform .12s;
+      overflow:hidden;
+    }
+    .tile:active{transform:scale(.97)}
+    .emoji{font-size:34px}
+
+    .tag{
+      position:absolute; bottom:6px; left:8px;
+      font-size:11px; font-weight:800;
+      background:rgba(255,255,255,.6);
+      padding:4px 8px; border-radius:999px;
     }
 
-    .tile {
-      font-size: 38px;
-      padding: 14px 16px;
-      min-width: 74px;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      background: white;
-      cursor: pointer;
-      box-shadow: 0 10px 24px var(--shadow);
-      transition: transform .08s ease, box-shadow .08s ease, filter .08s ease;
-      user-select: none;
+    /* floating points */
+    .floaty{
+      position:absolute; left:50%; top:50%;
+      transform:translate(-50%,-50%);
+      font-weight:900;
+      animation:floatUp .65s ease-out forwards;
+      pointer-events:none;
     }
-    .tile:hover { transform: translateY(-2px); }
-    .tile:active { transform: scale(0.96); filter: brightness(1.06); }
+    .floaty.negative{color:#b91c1c}
 
-    @keyframes pop { from { transform: scale(.92); opacity:0; } to { transform: scale(1); opacity:1; } }
-    .pop { animation: pop .12s ease-out; }
-
-    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-3px)} 75%{transform:translateX(3px)} }
-    .shake { animation: shake .12s ease-in-out; }
-
-    #hint { min-height: 24px; margin: 0; color: var(--muted); font-weight: 600; }
-
-    .legend {
-      display:flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 13px;
+    @keyframes floatUp{
+      0%{opacity:0;transform:translate(-50%,-20%)}
+      15%{opacity:1}
+      100%{opacity:0;transform:translate(-50%,-120%)}
     }
-    .legend code {
-      background: rgba(0,0,0,.04);
-      padding: 2px 6px;
-      border-radius: 8px;
-      border: 1px solid rgba(0,0,0,.06);
+
+    /* snake shake */
+    .shake{animation:shake .4s}
+    @keyframes shake{
+      0%,100%{transform:translateX(0)}
+      25%{transform:translateX(-6px)}
+      50%{transform:translateX(6px)}
+      75%{transform:translateX(-4px)}
     }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="top">
-      <div>
-        <h1>Bird Watch Arcade 🦩</h1>
-        <p class="muted">Tap birds to score. Build combo for multipliers. 🐍 resets combo. 🪺 boosts combo.</p>
-      </div>
-    </div>
-
-    <div class="hud">
-      <button class="btn" id="start">Start (30s)</button>
-
-      <div class="pill"><span class="label">Score</span> <span class="value" id="score">0</span></div>
-      <div class="pill"><span class="label">Combo</span> <span class="value" id="combo">0</span></div>
-      <div class="pill"><span class="label">Mult</span> <span class="value">x<span id="mult">1</span></span></div>
-      <div class="pill"><span class="label">Time</span> <span class="value"><span id="time">0</span>s</span></div>
-    </div>
-
-    <div class="card">
-      <div class="tiles" id="tiles"></div>
-      <p id="hint">Hit Start to begin.</p>
-
-      <div class="legend">
-        <span>Events:</span>
-        <code>game_start</code>
-        <code>tap_bird</code>
-        <code>combo_milestone</code>
-        <code>game_over</code>
-      </div>
-    </div>
+<div class="wrap">
+  <h1>Bird Watch Arcade 🦩</h1>
+  <div class="rules">
+    Tap birds to score. 🦩 is worth the most. 🐍 resets your score. 🪺 doubles your last bird click.
   </div>
 
-  <script>
-    const ITEMS = [
-      { type: "flamingo", emoji: "🦩", points: 15 }, // hype
-      { type: "eagle",    emoji: "🦅", points: 9  },
-      { type: "owl",      emoji: "🦉", points: 7  },
-      { type: "duck",     emoji: "🦆", points: 5  },
-      { type: "nest",     emoji: "🪺", points: 4, bonusCombo: true },
-      { type: "snake",    emoji: "🐍", points: -10 } // bad
-    ];
+  <div class="hud">
+    <div class="pill">Score <span id="score">0</span></div>
+    <div class="pill">Time <span id="time">30</span>s</div>
+    <div class="pill">Last <span id="last">—</span></div>
+  </div>
 
-    let playing = false;
-    let score = 0;
-    let combo = 0;
-    let timeLeft = 0;
-    let timer = null;
-    let startTs = null;
-    let maxCombo = 0;
+  <div class="panel">
+    <div class="topbar">
+      <button class="btn" id="start">Start (30s)</button>
+      <div class="status" id="status">Ready.</div>
+    </div>
 
-    const $score = document.getElementById("score");
-    const $combo = document.getElementById("combo");
-    const $mult  = document.getElementById("mult");
-    const $time  = document.getElementById("time");
-    const $tiles = document.getElementById("tiles");
-    const $hint  = document.getElementById("hint");
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
 
-    function getMultiplier(c) {
-      if (c >= 15) return 4;
-      if (c >= 10) return 3;
-      if (c >= 5)  return 2;
-      return 1;
+<script>
+  const GAME_SECONDS = 30
+  const POINTS = { flamingo:25, bird:10 }
+
+  let score=0, timeLeft=GAME_SECONDS, playing=false
+  let lastBasePoints=0, lastThing='—', timer=null
+
+  const $=id=>document.getElementById(id)
+  const scoreEl=$('score'), timeEl=$('time'), lastEl=$('last')
+  const gridEl=$('grid'), statusEl=$('status'), startBtn=$('start')
+
+  function capturePH(e,p){
+    if(window.posthog?.capture) window.posthog.capture(e,p||{})
+  }
+
+  function pop(tile,text,neg){
+    const f=document.createElement('div')
+    f.className='floaty'+(neg?' negative':'')
+    f.textContent=text
+    tile.appendChild(f)
+    setTimeout(()=>f.remove(),650)
+  }
+
+  function deal(){
+    const pool=[
+      {k:'flamingo',e:'🦩',l:'+25'},
+      {k:'bird',e:'🐦',l:'+10'},
+      {k:'bird',e:'🦆',l:'+10'},
+      {k:'bird',e:'🦉',l:'+10'},
+      {k:'nest',e:'🪺',l:'x2'},
+      {k:'snake',e:'🐍',l:'reset'}
+    ]
+    return pool.sort(()=>Math.random()-.5)
+  }
+
+  let tiles=deal()
+
+  function render(){
+    gridEl.innerHTML=''
+    tiles.forEach(t=>{
+      const d=document.createElement('div')
+      d.className='tile'
+      d.innerHTML=`<div class="emoji">${t.e}</div><div class="tag">${t.l}</div>`
+      d.onclick=()=>clickTile(d,t)
+      gridEl.appendChild(d)
+    })
+  }
+
+  function clickTile(el,t){
+    if(!playing) return
+
+    if(t.k==='snake'){
+      score=0; lastBasePoints=0; lastThing='🐍 reset'
+      el.classList.add('shake'); pop(el,'RESET',true)
+      capturePH('tap_snake',{score_after:0})
+    }
+    else if(t.k==='nest'){
+      const pts=lastBasePoints*2||0
+      score+=pts; lastThing=`🪺 +${pts}`
+      pop(el,'+'+pts)
+      capturePH('tap_nest',{points:pts,score_after:score})
+    }
+    else{
+      const base=t.k==='flamingo'?POINTS.flamingo:POINTS.bird
+      score+=base; lastBasePoints=base
+      lastThing=`${t.e} +${base}`
+      pop(el,'+'+base)
+      capturePH('tap_bird',{bird:t.k,score_after:score})
     }
 
-    function setUI() {
-      $score.textContent = score;
-      $combo.textContent = combo;
-      $time.textContent  = timeLeft;
-      $mult.textContent  = getMultiplier(combo);
-    }
+    tiles=deal()
+    update(); render()
+  }
 
-    function weightedPick() {
-      // Arcade rarity: flamingo rare, snake uncommon, nest moderate
-      const r = Math.random();
-      if (r < 0.08) return ITEMS.find(i => i.type === "flamingo"); // 8%
-      if (r < 0.16) return ITEMS.find(i => i.type === "snake");    // 8%
-      if (r < 0.36) return ITEMS.find(i => i.type === "nest");     // 20%
+  function update(){
+    scoreEl.textContent=score
+    timeEl.textContent=timeLeft
+    lastEl.textContent=lastThing
+  }
 
-      const common = ITEMS.filter(i => ["eagle","owl","duck"].includes(i.type));
-      return common[Math.floor(Math.random() * common.length)];
-    }
+  function start(){
+    if(playing) return
+    playing=true; score=0; timeLeft=GAME_SECONDS; lastBasePoints=0
+    update(); statusEl.textContent='Go!'
+    startBtn.disabled=true
+    capturePH('game_start',{duration:GAME_SECONDS})
 
-    function pickTiles() {
-      $tiles.innerHTML = "";
-      const picks = Array.from({ length: 4 }, () => weightedPick());
-
-      picks.forEach(item => {
-        const btn = document.createElement("button");
-        btn.className = "tile pop";
-        btn.textContent = item.emoji;
-        btn.title = `${item.type} (${item.points})`;
-        btn.onclick = () => tap(item, btn);
-        $tiles.appendChild(btn);
-      });
-
-      if (picks.some(p => p.type === "flamingo")) {
-        $hint.textContent = "🦩 FLAMINGO SPOTTED! GO GO GO!";
+    timer=setInterval(()=>{
+      timeLeft--; update()
+      if(timeLeft<=0){
+        clearInterval(timer); playing=false
+        statusEl.textContent=`Game over. Score: ${score}`
+        startBtn.disabled=false
+        capturePH('game_over',{final_score:score})
       }
-    }
+    },1000)
+  }
 
-    function startGame() {
-      if (playing) return;
-      playing = true;
-
-      score = 0;
-      combo = 0;
-      maxCombo = 0;
-      timeLeft = 30;
-      startTs = Date.now();
-
-      setUI();
-      pickTiles();
-      $hint.textContent = "Tap birds to score. Build combo for multipliers.";
-
-      posthog.capture("game_start", {
-        game: "bird_watch_arcade",
-        site: "thebabyflamingo",
-        duration_s: 30
-      });
-
-      // Arcade cadence: tiles refresh on a steady beat, not on click
-      timer = setInterval(() => {
-        timeLeft -= 1;
-        setUI();
-
-        if (timeLeft <= 0) {
-          endGame();
-          return;
-        }
-
-        pickTiles();
-      }, 1000);
-    }
-
-    function tap(item, btnEl) {
-      if (!playing) return;
-
-      if (item.points < 0) {
-        combo = 0;
-        if (btnEl) btnEl.classList.add("shake");
-        $hint.textContent = "🐍 Oof! Combo reset.";
-      } else {
-        combo += 1;
-        if (item.bonusCombo) combo += 1;
-      }
-
-      maxCombo = Math.max(maxCombo, combo);
-
-      const mult = getMultiplier(combo);
-      const gained = item.points * mult;
-      score += gained;
-
-      // quick hit feedback
-      if (btnEl) {
-        btnEl.style.transform = "scale(1.06)";
-        setTimeout(() => (btnEl.style.transform = ""), 80);
-      }
-
-      posthog.capture("tap_bird", {
-        bird_type: item.type,
-        base_points: item.points,
-        multiplier: mult,
-        points_gained: gained,
-        score,
-        combo
-      });
-
-      if ([5, 10, 15].includes(combo)) {
-        posthog.capture("combo_milestone", { combo, score });
-        $hint.textContent = `🔥 Combo ${combo}! Multiplier x${mult}`;
-      }
-
-      setUI();
-    }
-
-    function endGame() {
-      if (!playing) return;
-      playing = false;
-      clearInterval(timer);
-
-      const session_s = Math.round((Date.now() - startTs) / 1000);
-
-      posthog.capture("game_over", {
-        game: "bird_watch_arcade",
-        final_score: score,
-        max_combo: maxCombo,
-        session_s
-      });
-
-      $hint.textContent = `Game over. Final score: ${score}. Hit Start to play again.`;
-    }
-
-    document.getElementById("start").onclick = startGame;
-    setUI();
-  </script>
+  startBtn.onclick=start
+  render(); update()
+</script>
 </body>
 </html>
