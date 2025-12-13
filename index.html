@@ -5,13 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Bird Watch Arcade 🦩</title>
 
+  <!-- PostHog -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog&&window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister getFeatureFlag isFeatureEnabled reloadFeatureFlags onFeatureFlags identify reset get_distinct_id get_session_id startSessionRecording stopSessionRecording".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+
+    posthog.init("phc_DQJyMgMb9vXZWTjaEnrZ5ANFvxuw0u9VOsqBTZy8XDM", {
+      api_host: "https://us.i.posthog.com",
+      person_profiles: "identified_only",
+      autocapture: false,
+      capture_pageview: true
+    });
+  </script>
+
   <style>
-    :root {
+    :root{
       --bg1:#fff6fb; --bg2:#eef7ff; --card:rgba(255,255,255,.75);
       --stroke:rgba(30,41,59,.12); --text:#0f172a; --muted:rgba(15,23,42,.65);
       --shadow:0 18px 55px rgba(15,23,42,.12); --radius:20px;
     }
-
     *{box-sizing:border-box}
     body{
       margin:0; min-height:100vh;
@@ -23,7 +34,6 @@
       display:grid; place-items:center; padding:16px;
       color:var(--text);
     }
-
     .wrap{width:min(560px,100%)}
     h1{margin:0;font-size:22px}
     .rules{font-size:13.5px;color:var(--muted);margin-top:6px}
@@ -52,11 +62,9 @@
       padding:10px 12px;border-radius:12px;
       font-weight:800; cursor:pointer;
     }
-    .btn[disabled]{opacity:.5}
-
+    .btn[disabled]{opacity:.5; cursor:not-allowed}
     .status{font-size:13px;color:var(--muted)}
 
-    /* 3 across grid */
     .grid{
       display:grid;
       grid-template-columns:repeat(3,1fr);
@@ -71,6 +79,7 @@
       position:relative; cursor:pointer;
       transition:transform .12s;
       overflow:hidden;
+      user-select:none;
     }
     .tile:active{transform:scale(.97)}
     .emoji{font-size:34px}
@@ -82,29 +91,29 @@
       padding:4px 8px; border-radius:999px;
     }
 
-    /* floating points */
     .floaty{
       position:absolute; left:50%; top:50%;
       transform:translate(-50%,-50%);
       font-weight:900;
       animation:floatUp .65s ease-out forwards;
       pointer-events:none;
+      text-shadow:0 8px 18px rgba(15,23,42,.18);
     }
     .floaty.negative{color:#b91c1c}
 
     @keyframes floatUp{
-      0%{opacity:0;transform:translate(-50%,-20%)}
+      0%{opacity:0;transform:translate(-50%,-30%) scale(.98)}
       15%{opacity:1}
-      100%{opacity:0;transform:translate(-50%,-120%)}
+      100%{opacity:0;transform:translate(-50%,-120%) scale(1.04)}
     }
 
-    /* snake shake */
-    .shake{animation:shake .4s}
+    .shake{animation:shake .42s ease-in-out}
     @keyframes shake{
       0%,100%{transform:translateX(0)}
-      25%{transform:translateX(-6px)}
-      50%{transform:translateX(6px)}
-      75%{transform:translateX(-4px)}
+      20%{transform:translateX(-6px)}
+      40%{transform:translateX(6px)}
+      60%{transform:translateX(-4px)}
+      80%{transform:translateX(4px)}
     }
   </style>
 </head>
@@ -127,7 +136,6 @@
       <button class="btn" id="start">Start (30s)</button>
       <div class="status" id="status">Ready.</div>
     </div>
-
     <div class="grid" id="grid"></div>
   </div>
 </div>
@@ -138,6 +146,7 @@
 
   let score=0, timeLeft=GAME_SECONDS, playing=false
   let lastBasePoints=0, lastThing='—', timer=null
+  let animating=false
 
   const $=id=>document.getElementById(id)
   const scoreEl=$('score'), timeEl=$('time'), lastEl=$('last')
@@ -155,16 +164,28 @@
     setTimeout(()=>f.remove(),650)
   }
 
+  function shake(el){
+    el.classList.remove('shake')
+    void el.offsetWidth
+    el.classList.add('shake')
+    setTimeout(()=>el.classList.remove('shake'),420)
+  }
+
   function deal(){
-    const pool=[
-      {k:'flamingo',e:'🦩',l:'+25'},
+    const birds=[
       {k:'bird',e:'🐦',l:'+10'},
       {k:'bird',e:'🦆',l:'+10'},
       {k:'bird',e:'🦉',l:'+10'},
-      {k:'nest',e:'🪺',l:'x2'},
-      {k:'snake',e:'🐍',l:'reset'}
     ]
-    return pool.sort(()=>Math.random()-.5)
+    const tiles=[
+      {k:'flamingo',e:'🦩',l:'+25'},
+      {k:'nest',e:'🪺',l:'x2'},
+      {k:'snake',e:'🐍',l:'reset'},
+      birds[Math.floor(Math.random()*3)],
+      birds[Math.floor(Math.random()*3)],
+      birds[Math.floor(Math.random()*3)],
+    ]
+    return tiles.sort(()=>Math.random()-.5)
   }
 
   let tiles=deal()
@@ -181,11 +202,12 @@
   }
 
   function clickTile(el,t){
-    if(!playing) return
+    if(!playing || animating) return
+    animating=true
 
     if(t.k==='snake'){
       score=0; lastBasePoints=0; lastThing='🐍 reset'
-      el.classList.add('shake'); pop(el,'RESET',true)
+      shake(el); pop(el,'RESET',true)
       capturePH('tap_snake',{score_after:0})
     }
     else if(t.k==='nest'){
@@ -202,8 +224,8 @@
       capturePH('tap_bird',{bird:t.k,score_after:score})
     }
 
-    tiles=deal()
-    update(); render()
+    update()
+    setTimeout(()=>{ tiles=deal(); render(); animating=false },250)
   }
 
   function update(){
@@ -214,11 +236,12 @@
 
   function start(){
     if(playing) return
-    playing=true; score=0; timeLeft=GAME_SECONDS; lastBasePoints=0
+    playing=true; score=0; timeLeft=GAME_SECONDS; lastBasePoints=0; lastThing='—'
     update(); statusEl.textContent='Go!'
     startBtn.disabled=true
-    capturePH('game_start',{duration:GAME_SECONDS})
+    capturePH('game_start',{duration_s:GAME_SECONDS})
 
+    clearInterval(timer)
     timer=setInterval(()=>{
       timeLeft--; update()
       if(timeLeft<=0){
