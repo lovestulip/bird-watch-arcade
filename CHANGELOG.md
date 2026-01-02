@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [1.0.1] - 2026-01-02
+- Replaced the name popup with an inline name field.
+- Reset PostHog identity when switching names or entering Guest mode.
+- Track `leaderboard_opened` when the leaderboard link is clicked.
+
 ## [1.0.0] - 2026-01-02
 - Added Guest mode and name controls for shared devices.
 - Identify players only after they enter a name.

@@ -54,6 +54,8 @@ The game explicitly tracks the following events using `posthog.capture()`:
     - `last_score`
     - `high_score`
     - `games_played_count`
+- `leaderboard_opened`
+  - `source`
 
 These events are **manually defined in the game logic** and are separate from
 PostHog’s default autocapture events (pageviews, web vitals, etc.).
@@ -69,13 +71,18 @@ Autocapture is disabled, but pageviews are enabled.
   person properties for that player.
 - If no name is set, we still capture events but **do not** create a person
   profile or attach person properties.
-- Players can switch names or return to **Guest mode** at any time.
+- Names are entered via the inline UI (no popup prompt).
+- Guest mode clears the stored name and resets PostHog identity on this device.
+- Switching to a new name also resets identity, so each player gets a separate
+  person profile.
+  This avoids mixing multiple players on shared devices and keeps profiles
+  intentionally scoped to a single person.
 
 ---
 
 ## 🏆 Leaderboard
 
-Open the leaderboard in PostHog:
+Open the leaderboard in PostHog (also linked from the in-game UI):
 https://us.posthog.com/embedded/xf1YTaMVIL5JKMw87qQl4rki_VU9qA
 
 The SQL insight ranks players by max `game_over.final_score` over the last 90 days.
