@@ -7,3 +7,4 @@ All notable changes to this project will be documented here.
 - Identify players only after they enter a name.
 - Track person properties on `game_over` for named players.
 - Added a Game Over overlay for clearer end-of-round feedback.
+- Linked to the PostHog leaderboard.

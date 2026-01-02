@@ -76,6 +76,13 @@
       padding:6px 8px; border-radius:10px;
       font-size:12px; font-weight:700;
     }
+    .namebar input{
+      padding:6px 8px; border-radius:10px;
+      border:1px solid var(--stroke);
+      background:rgba(255,255,255,.85);
+      font-size:12px;
+      min-width:180px;
+    }
 
     .grid{
       display:grid;
@@ -170,8 +177,10 @@
     </div>
     <div class="namebar">
       <div id="nameLabel">Playing as Guest</div>
-      <button class="btn" id="nameBtn">Set/Change name</button>
+      <input id="nameInput" type="text" placeholder="Enter name (optional)" maxlength="24" />
+      <button class="btn" id="nameBtn">Save name</button>
       <button class="btn" id="anonBtn">Guest mode</button>
+      <a class="btn" href="https://us.posthog.com/embedded/xf1YTaMVIL5JKMw87qQl4rki_VU9qA" target="_blank" rel="noopener noreferrer">Leaderboard</a>
     </div>
     <div class="overlay" id="gameover">Game Over</div>
     <div class="grid" id="grid"></div>
@@ -193,6 +202,7 @@
   const nameLabelEl=$('nameLabel')
   const nameBtn=$('nameBtn')
   const anonBtn=$('anonBtn')
+  const nameInput=$('nameInput')
 
   function capturePH(e,p){
     if(window.posthog?.capture) window.posthog.capture(e,p||{})
@@ -207,20 +217,11 @@
     nameLabelEl.textContent = name ? `Name: ${name}` : 'Playing as Guest'
   }
 
-  function promptForName(){
-    const input = prompt('Optional: enter a name to appear on the leaderboard. If you do, we will create a PostHog person profile and track your scores for learning/demo purposes.') || ''
-    const trimmed = input.trim()
-    if(trimmed){
-      localStorage.setItem('birdwatch_username', trimmed)
-    }
-    updateNameLabel()
-    return trimmed
-  }
-
   function setAnonymous(){
     localStorage.removeItem('birdwatch_username')
     localStorage.removeItem('birdwatch_identified')
     updateNameLabel()
+    nameInput.value = ''
   }
 
   function ensureIdentified(name){
@@ -330,10 +331,7 @@
 
   function start(){
     if(playing) return
-    let trimmedName = getUsername()
-    if(!trimmedName){
-      trimmedName = promptForName()
-    }
+    const trimmedName = getUsername()
     ensureIdentified(trimmedName)
     playing=true; score=0; timeLeft=GAME_SECONDS; lastBasePoints=0; lastThing='—'
     update(); statusEl.textContent='Go!'
@@ -368,8 +366,12 @@
 
   startBtn.onclick=start
   nameBtn.onclick=()=>{
-    const name = promptForName()
-    ensureIdentified(name)
+    const trimmed = nameInput.value.trim()
+    if(trimmed){
+      localStorage.setItem('birdwatch_username', trimmed)
+    }
+    updateNameLabel()
+    ensureIdentified(trimmed)
   }
   anonBtn.onclick=setAnonymous
   updateNameLabel()
