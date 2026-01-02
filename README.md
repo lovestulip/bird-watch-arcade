@@ -88,7 +88,7 @@ between embedded vs standalone usage.
 
 ## 📓 Changelog
 
-See `CHANGELOG.md`.
+See [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
