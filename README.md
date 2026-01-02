@@ -73,6 +73,17 @@ Autocapture is disabled, but pageviews are enabled.
 
 ---
 
+## 🏆 Leaderboard
+
+Open the leaderboard in PostHog:
+https://us.posthog.com/embedded/xf1YTaMVIL5JKMw87qQl4rki_VU9qA
+
+The SQL insight ranks players by max `game_over.final_score` over the last 90 days.
+It shows display name (or a Guest alias), highest score, score timestamp, and city
+from GeoIP for context.
+
+---
+
 ## 🌐 Live Versions
 
 - **GitHub Pages (standalone game)**  
