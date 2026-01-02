@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented here.
 
-## [Unreleased]
+## [1.0.0] - 2026-01-02
 - Added Guest mode and name controls for shared devices.
 - Identify players only after they enter a name.
 - Track person properties on game over for named players.
