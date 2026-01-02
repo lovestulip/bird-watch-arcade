@@ -7,10 +7,11 @@
 
   <!-- PostHog -->
   <script>
-    !function(t,e){var o,n,p,r;e.__SV||(window.posthog&&window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister getFeatureFlag isFeatureEnabled reloadFeatureFlags onFeatureFlags identify reset get_distinct_id get_session_id startSessionRecording stopSessionRecording".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog&&window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init ts ns yi rs os Qr es capture Hi calculateEventProperties hs register register_once register_for_session unregister unregister_for_session fs getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty vs us createPersonProfile cs Yr ps opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing ls debug O ds getPageViewId captureTraceFeedback captureTraceMetric Vr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
 
     posthog.init("phc_DQJyMgMb9vXZWTjaEnrZ5ANFvxuw0u9VOsqBTZy8XDM", {
       api_host: "https://us.i.posthog.com",
+      defaults: "2025-11-30",
       person_profiles: "identified_only",
       autocapture: false,
       capture_pageview: true
@@ -53,6 +54,7 @@
       background:var(--card); border:1px solid var(--stroke);
       border-radius:var(--radius); padding:14px;
       box-shadow:var(--shadow); backdrop-filter:blur(10px);
+      position:relative;
     }
 
     .topbar{display:flex;justify-content:space-between;align-items:center}
@@ -64,6 +66,16 @@
     }
     .btn[disabled]{opacity:.5; cursor:not-allowed}
     .status{font-size:13px;color:var(--muted)}
+    .consent{font-size:12.5px;color:var(--muted);margin-top:8px}
+    .namebar{
+      display:flex; gap:8px; align-items:center;
+      margin-top:10px; font-size:12.5px; color:var(--muted);
+      flex-wrap:wrap;
+    }
+    .namebar .btn{
+      padding:6px 8px; border-radius:10px;
+      font-size:12px; font-weight:700;
+    }
 
     .grid{
       display:grid;
@@ -115,6 +127,23 @@
       60%{transform:translateX(-4px)}
       80%{transform:translateX(4px)}
     }
+
+    .overlay{
+      position:absolute; inset:0;
+      display:grid; place-items:center;
+      font-size:28px; font-weight:900; letter-spacing:.5px;
+      color:#111827;
+      background:rgba(255,255,255,.6);
+      opacity:0; pointer-events:none;
+      transform:scale(.98);
+    }
+    .overlay.show{animation:gameOverPop 1.2s ease-out forwards}
+    @keyframes gameOverPop{
+      0%{opacity:0;transform:scale(.96)}
+      10%{opacity:1}
+      80%{opacity:1}
+      100%{opacity:0;transform:scale(1.03)}
+    }
   </style>
 </head>
 
@@ -136,6 +165,15 @@
       <button class="btn" id="start">Start (30s)</button>
       <div class="status" id="status">Ready.</div>
     </div>
+    <div class="consent">
+      Optional: enter a name to appear on the leaderboard. We only create a PostHog person profile when you do.
+    </div>
+    <div class="namebar">
+      <div id="nameLabel">Playing as Guest</div>
+      <button class="btn" id="nameBtn">Set/Change name</button>
+      <button class="btn" id="anonBtn">Guest mode</button>
+    </div>
+    <div class="overlay" id="gameover">Game Over</div>
     <div class="grid" id="grid"></div>
   </div>
 </div>
@@ -151,9 +189,59 @@
   const $=id=>document.getElementById(id)
   const scoreEl=$('score'), timeEl=$('time'), lastEl=$('last')
   const gridEl=$('grid'), statusEl=$('status'), startBtn=$('start')
+  const gameOverEl=$('gameover')
+  const nameLabelEl=$('nameLabel')
+  const nameBtn=$('nameBtn')
+  const anonBtn=$('anonBtn')
 
   function capturePH(e,p){
     if(window.posthog?.capture) window.posthog.capture(e,p||{})
+  }
+
+  function getUsername(){
+    return (localStorage.getItem('birdwatch_username') || '').trim()
+  }
+
+  function updateNameLabel(){
+    const name=getUsername()
+    nameLabelEl.textContent = name ? `Name: ${name}` : 'Playing as Guest'
+  }
+
+  function promptForName(){
+    const input = prompt('Optional: enter a name to appear on the leaderboard. If you do, we will create a PostHog person profile and track your scores for learning/demo purposes.') || ''
+    const trimmed = input.trim()
+    if(trimmed){
+      localStorage.setItem('birdwatch_username', trimmed)
+    }
+    updateNameLabel()
+    return trimmed
+  }
+
+  function setAnonymous(){
+    localStorage.removeItem('birdwatch_username')
+    localStorage.removeItem('birdwatch_identified')
+    updateNameLabel()
+  }
+
+  function ensureIdentified(name){
+    if(!name || !window.posthog?.identify) return
+    const wasIdentified = localStorage.getItem('birdwatch_identified') === '1'
+    if(wasIdentified) return
+    const distinctId = posthog.get_distinct_id()
+    posthog.identify(distinctId, {
+      player_name: name,
+      first_play_date: new Date().toISOString()
+    })
+    localStorage.setItem('birdwatch_identified', '1')
+  }
+
+  function getStoredInt(key,fallback=0){
+    const v=parseInt(localStorage.getItem(key),10)
+    return Number.isFinite(v)?v:fallback
+  }
+
+  function setStoredInt(key,value){
+    localStorage.setItem(key,String(value))
   }
 
   function pop(tile,text,neg){
@@ -169,6 +257,12 @@
     void el.offsetWidth
     el.classList.add('shake')
     setTimeout(()=>el.classList.remove('shake'),420)
+  }
+
+  function showGameOver(){
+    gameOverEl.classList.remove('show')
+    void gameOverEl.offsetWidth
+    gameOverEl.classList.add('show')
   }
 
   function deal(){
@@ -236,6 +330,11 @@
 
   function start(){
     if(playing) return
+    let trimmedName = getUsername()
+    if(!trimmedName){
+      trimmedName = promptForName()
+    }
+    ensureIdentified(trimmedName)
     playing=true; score=0; timeLeft=GAME_SECONDS; lastBasePoints=0; lastThing='—'
     update(); statusEl.textContent='Go!'
     startBtn.disabled=true
@@ -248,12 +347,32 @@
         clearInterval(timer); playing=false
         statusEl.textContent=`Game over. Score: ${score}`
         startBtn.disabled=false
-        capturePH('game_over',{final_score:score})
+        showGameOver()
+        const prevHigh=getStoredInt('birdwatch_high_score',0)
+        const nextHigh=Math.max(prevHigh,score)
+        setStoredInt('birdwatch_high_score',nextHigh)
+        const gamesPlayed=getStoredInt('birdwatch_games_played',0)+1
+        setStoredInt('birdwatch_games_played',gamesPlayed)
+        const endProps={final_score:score}
+        if(trimmedName){
+          endProps.$set={
+            last_score:score,
+            high_score:nextHigh,
+            games_played_count:gamesPlayed
+          }
+        }
+        capturePH('game_over',endProps)
       }
     },1000)
   }
 
   startBtn.onclick=start
+  nameBtn.onclick=()=>{
+    const name = promptForName()
+    ensureIdentified(name)
+  }
+  anonBtn.onclick=setAnonymous
+  updateNameLabel()
   render(); update()
 </script>
 </body>

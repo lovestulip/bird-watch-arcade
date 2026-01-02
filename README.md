@@ -39,19 +39,37 @@ Each game session lasts **30 seconds**.
 The game explicitly tracks the following events using `posthog.capture()`:
 
 - `game_start`
-- `tap_bird`  
-  - `bird_type`
-  - `base_points`
+  - `duration_s`
+- `tap_bird`
+  - `bird`
   - `score_after`
-  - `time_left`
 - `tap_nest`
+  - `points`
+  - `score_after`
 - `tap_snake`
+  - `score_after`
 - `game_over`
   - `final_score`
-  - `duration_s`
+  - `$set` (only when a name is set)
+    - `last_score`
+    - `high_score`
+    - `games_played_count`
 
 These events are **manually defined in the game logic** and are separate from
 PostHog’s default autocapture events (pageviews, web vitals, etc.).
+
+Autocapture is disabled, but pageviews are enabled.
+
+---
+
+## 🧑‍💻 Names, Profiles, and Privacy
+
+- Players are **anonymous by default**.
+- If a player enters a name, we call `posthog.identify()` once and start tracking
+  person properties for that player.
+- If no name is set, we still capture events but **do not** create a person
+  profile or attach person properties.
+- Players can switch names or return to **Guest mode** at any time.
 
 ---
 
@@ -61,10 +79,16 @@ PostHog’s default autocapture events (pageviews, web vitals, etc.).
   https://lovestulip.github.io/bird-watch-arcade/
 
 - **Embedded on WordPress**  
-  https://thebabyflamingo.wordpress.com/
+  https://thebabyflamingo.wpcomstaging.com/2025/12/12/bird-watch-arcade/
 
 Both versions send events to the same PostHog project, allowing comparison
 between embedded vs standalone usage.
+
+---
+
+## 📓 Changelog
+
+See `CHANGELOG.md`.
 
 ---
 
