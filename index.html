@@ -180,7 +180,7 @@
       <input id="nameInput" type="text" placeholder="Enter name (optional)" maxlength="24" />
       <button class="btn" id="nameBtn">Save name</button>
       <button class="btn" id="anonBtn">Guest mode</button>
-      <a class="btn" href="https://us.posthog.com/embedded/xf1YTaMVIL5JKMw87qQl4rki_VU9qA" target="_blank" rel="noopener noreferrer">Leaderboard</a>
+      <a class="btn" id="leaderboardBtn" href="https://us.posthog.com/embedded/xf1YTaMVIL5JKMw87qQl4rki_VU9qA" target="_blank" rel="noopener noreferrer">Leaderboard</a>
     </div>
     <div class="overlay" id="gameover">Game Over</div>
     <div class="grid" id="grid"></div>
@@ -203,6 +203,7 @@
   const nameBtn=$('nameBtn')
   const anonBtn=$('anonBtn')
   const nameInput=$('nameInput')
+  const leaderboardBtn=$('leaderboardBtn')
 
   function capturePH(e,p){
     if(window.posthog?.capture) window.posthog.capture(e,p||{})
@@ -222,6 +223,7 @@
     localStorage.removeItem('birdwatch_identified')
     updateNameLabel()
     nameInput.value = ''
+    if(window.posthog?.reset) posthog.reset()
   }
 
   function ensureIdentified(name){
@@ -368,12 +370,19 @@
   nameBtn.onclick=()=>{
     const trimmed = nameInput.value.trim()
     if(trimmed){
+      const current = getUsername()
+      const wasIdentified = localStorage.getItem('birdwatch_identified') === '1'
+      if(wasIdentified && current && current !== trimmed && window.posthog?.reset){
+        posthog.reset()
+        localStorage.removeItem('birdwatch_identified')
+      }
       localStorage.setItem('birdwatch_username', trimmed)
     }
     updateNameLabel()
     ensureIdentified(trimmed)
   }
   anonBtn.onclick=setAnonymous
+  leaderboardBtn.onclick=()=>capturePH('leaderboard_opened',{source:'namebar'})
   updateNameLabel()
   render(); update()
 </script>
