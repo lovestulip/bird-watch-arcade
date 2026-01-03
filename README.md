@@ -4,6 +4,7 @@ A lightweight arcade-style game built to explore **PostHog product analytics**.
 
 Players tap birds to score points, use nests strategically, and avoid snakes.
 Flamingos are high-value targets, while snakes reset your score.
+There's also a little secret in the game :shh:
 
 This project is intentionally simple so the focus stays on **event design,
 instrumentation, and analysis** rather than frameworks.
@@ -26,8 +27,9 @@ This game acts as a controlled environment for learning analytics properly.
 ## 🎮 Gameplay Rules
 
 - 🦩 **Flamingo** — highest score  
-- 🐦 **Other birds** — lower score  
-- 🪺 **Nest** — doubles the previous bird’s points  
+- 🕊️🦆🦅🦉🦜🦢🪿🐦‍⬛ **Other birds** — varied point values  
+- 🦤 **Dodo** — rare, triples your last bird points  
+- 🪺 **Nest** — doubles your last bird’s points (not the dodo)  
 - 🐍 **Snake** — resets your score to zero  
 
 Each game session lasts **30 seconds**.
@@ -48,8 +50,14 @@ The game explicitly tracks the following events using `posthog.capture()`:
   - `score_after`
 - `tap_snake`
   - `score_after`
+- `tap_dodo`
+  - `points`
+  - `score_after`
+- `snake_cheat_unlocked`
+  - `score_after`
 - `game_over`
   - `final_score`
+  - `reason`
   - `$set` (only when a name is set)
     - `last_score`
     - `high_score`
