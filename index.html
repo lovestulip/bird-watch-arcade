@@ -65,6 +65,11 @@
       font-weight:800; cursor:pointer;
     }
     .btn[disabled]{opacity:.5; cursor:not-allowed}
+    .btn.secondary{
+      border-color:rgba(15,23,42,.18);
+      background:linear-gradient(180deg,#fff,#f1f5f9);
+      font-size:12px; padding:8px 10px;
+    }
     .status{font-size:13px;color:var(--muted)}
     .consent{font-size:12.5px;color:var(--muted);margin-top:8px}
     .namebar{
@@ -151,6 +156,48 @@
       80%{opacity:1}
       100%{opacity:0;transform:scale(1.03)}
     }
+
+    .effects{
+      position:fixed; inset:0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index:50;
+    }
+    .easter-banner{
+      position:absolute; left:50%; top:50%;
+      transform:translate(-50%,-50%) scale(.95);
+      background:rgba(255,255,255,.92);
+      border:1px solid var(--stroke);
+      box-shadow:0 18px 40px rgba(15,23,42,.18);
+      padding:16px 18px;
+      border-radius:18px;
+      font-size:20px; font-weight:900;
+      font-family:"Copperplate","Palatino Linotype","Georgia",serif;
+      letter-spacing:.6px;
+      text-align:center;
+      opacity:0;
+    }
+    .easter-banner.show{animation:bannerPop 6s ease-in-out forwards}
+    @keyframes bannerPop{
+      0%{opacity:0;transform:translate(-50%,-50%) scale(.9)}
+      12%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+      85%{opacity:1}
+      100%{opacity:0;transform:translate(-50%,-50%) scale(1.02)}
+    }
+    #rain{
+      position:relative;
+      width:100%;
+      height:100%;
+    }
+    .rain-item{
+      position:absolute; top:-10%;
+      animation:rainFall linear forwards;
+      text-shadow:0 10px 22px rgba(15,23,42,.2);
+    }
+    .rain-item img{display:block}
+    @keyframes rainFall{
+      to{transform:translateY(120vh) rotate(20deg)}
+    }
   </style>
 </head>
 
@@ -158,7 +205,7 @@
 <div class="wrap">
   <h1>Bird Watch Arcade 🦩</h1>
   <div class="rules">
-    Tap birds to score. 🦩 is worth the most. 🐍 resets your score. 🪺 doubles your last bird click.
+    Tap birds to score. Birds vary in points. 🪺 doubles your last bird click (no dodo). 🐍 resets your score. Rare 🦤 gives 3x your last bird points.
   </div>
 
   <div class="hud">
@@ -169,7 +216,9 @@
 
   <div class="panel">
     <div class="topbar">
-      <button class="btn" id="start">Start (30s)</button>
+      <div>
+        <button class="btn" id="start">Start (30s)</button>
+      </div>
       <div class="status" id="status">Ready.</div>
     </div>
     <div class="consent">
@@ -186,19 +235,41 @@
     <div class="grid" id="grid"></div>
   </div>
 </div>
+<div class="effects" id="effects">
+  <div class="easter-banner" id="easterBanner">I have had it with these mother@#$%! snakes on this mother@#$%! plane!</div>
+  <div id="rain"></div>
+</div>
 
 <script>
   const GAME_SECONDS = 30
-  const POINTS = { flamingo:25, bird:10 }
+  const POINTS = {
+    flamingo:25,
+    dove:9,
+    duck:11,
+    eagle:20,
+    owl:13,
+    parrot:15,
+    swan:18,
+    goose:12,
+    crow:14
+  }
+  const DODO_MULTIPLIER = 3
+  const DODO_CHANCE = 0.015
+  const SNAKE_STREAK_FOR_CHEAT = 28
+  const RAIN_DURATION_MS = 9000
+  const RAIN_INTERVAL_MS = 160
 
   let score=0, timeLeft=GAME_SECONDS, playing=false
-  let lastBasePoints=0, lastThing='—', timer=null
+  let lastBirdPoints=0, lastPointsAwarded=0, lastThing='—', timer=null
   let animating=false
+  let snakeStreak=0, cheatUsed=false
 
   const $=id=>document.getElementById(id)
   const scoreEl=$('score'), timeEl=$('time'), lastEl=$('last')
   const gridEl=$('grid'), statusEl=$('status'), startBtn=$('start')
   const gameOverEl=$('gameover')
+  const rainEl=$('rain')
+  const easterBannerEl=$('easterBanner')
   const nameLabelEl=$('nameLabel')
   const nameBtn=$('nameBtn')
   const anonBtn=$('anonBtn')
@@ -268,20 +339,59 @@
     gameOverEl.classList.add('show')
   }
 
+  function endGame(reason){
+    playing=false
+    clearInterval(timer)
+    startBtn.disabled=false
+    const message = reason === 'cheat' ? `Cheat unlocked! Score: ${score}` : `Game over. Score: ${score}`
+    statusEl.textContent = message
+    if(reason === 'cheat'){
+      gameOverEl.textContent = 'Game Over'
+    }else{
+      gameOverEl.textContent = 'Game Over'
+      showGameOver()
+    }
+    const prevHigh=getStoredInt('birdwatch_high_score',0)
+    const nextHigh=Math.max(prevHigh,score)
+    setStoredInt('birdwatch_high_score',nextHigh)
+    const gamesPlayed=getStoredInt('birdwatch_games_played',0)+1
+    setStoredInt('birdwatch_games_played',gamesPlayed)
+    const endProps={final_score:score, reason}
+    const trimmedName = getUsername()
+    if(trimmedName){
+      endProps.$set={
+        last_score:score,
+        high_score:nextHigh,
+        games_played_count:gamesPlayed
+      }
+    }
+    capturePH('game_over',endProps)
+  }
+
   function deal(){
     const birds=[
-      {k:'bird',e:'🐦',l:'+10'},
-      {k:'bird',e:'🦆',l:'+10'},
-      {k:'bird',e:'🦉',l:'+10'},
+      {k:'dove',e:'🕊️',p:POINTS.dove},
+      {k:'duck',e:'🦆',p:POINTS.duck},
+      {k:'eagle',e:'🦅',p:POINTS.eagle},
+      {k:'owl',e:'🦉',p:POINTS.owl},
+      {k:'parrot',e:'🦜',p:POINTS.parrot},
+      {k:'swan',e:'🦢',p:POINTS.swan},
+      {k:'goose',e:'🪿',p:POINTS.goose},
+      {k:'crow',e:'🐦‍⬛',p:POINTS.crow}
     ]
     const tiles=[
-      {k:'flamingo',e:'🦩',l:'+25'},
+      {k:'flamingo',e:'🦩',l:`+${POINTS.flamingo}`},
       {k:'nest',e:'🪺',l:'x2'},
       {k:'snake',e:'🐍',l:'reset'},
-      birds[Math.floor(Math.random()*3)],
-      birds[Math.floor(Math.random()*3)],
-      birds[Math.floor(Math.random()*3)],
     ]
+    for(let i=0;i<6;i++){
+      const b=birds[Math.floor(Math.random()*birds.length)]
+      tiles.push({k:b.k,e:b.e,l:`+${b.p}`})
+    }
+    if(Math.random()<DODO_CHANCE){
+      const replaceIndex=3+Math.floor(Math.random()*6)
+      tiles[replaceIndex]={k:'dodo',e:'🦤',l:`x${DODO_MULTIPLIER}`}
+    }
     return tiles.sort(()=>Math.random()-.5)
   }
 
@@ -303,26 +413,50 @@
     animating=true
 
     if(t.k==='snake'){
-      score=0; lastBasePoints=0; lastThing='🐍 reset'
+      score=0; lastBirdPoints=0; lastPointsAwarded=0; lastThing='🐍 reset'
+      snakeStreak+=1
       shake(el); pop(el,'RESET',true)
       capturePH('tap_snake',{score_after:0})
+      if(snakeStreak>=SNAKE_STREAK_FOR_CHEAT && !cheatUsed){
+        cheatUsed=true
+        score=5000
+        lastThing='🐍 cheat +5000'
+        triggerSnakeEasterEgg()
+        capturePH('snake_cheat_unlocked',{score_after:score})
+        endGame('cheat')
+      }
     }
     else if(t.k==='nest'){
-      const pts=lastBasePoints*2||0
-      score+=pts; lastThing=`🪺 +${pts}`
+      snakeStreak=0
+      const pts=lastBirdPoints*2||0
+      score+=pts; lastPointsAwarded=pts; lastThing=`🪺 +${pts}`
       pop(el,'+'+pts)
       capturePH('tap_nest',{points:pts,score_after:score})
     }
+    else if(t.k==='dodo'){
+      snakeStreak=0
+      const pts=Math.round(lastBirdPoints*DODO_MULTIPLIER)
+      score+=pts; lastPointsAwarded=pts; lastThing=`🦤 +${pts}`
+      pop(el,'+'+pts)
+      capturePH('tap_dodo',{points:pts,score_after:score})
+    }
     else{
-      const base=t.k==='flamingo'?POINTS.flamingo:POINTS.bird
-      score+=base; lastBasePoints=base
+      snakeStreak=0
+      const base=POINTS[t.k]||0
+      score+=base; lastBirdPoints=base; lastPointsAwarded=base
       lastThing=`${t.e} +${base}`
       pop(el,'+'+base)
       capturePH('tap_bird',{bird:t.k,score_after:score})
     }
 
     update()
-    setTimeout(()=>{ tiles=deal(); render(); animating=false },250)
+    setTimeout(()=>{
+      if(playing){
+        tiles=deal()
+        render()
+      }
+      animating=false
+    },250)
   }
 
   function update(){
@@ -335,7 +469,8 @@
     if(playing) return
     const trimmedName = getUsername()
     ensureIdentified(trimmedName)
-    playing=true; score=0; timeLeft=GAME_SECONDS; lastBasePoints=0; lastThing='—'
+    playing=true; score=0; timeLeft=GAME_SECONDS; lastBirdPoints=0; lastPointsAwarded=0; lastThing='—'
+    snakeStreak=0; cheatUsed=false
     update(); statusEl.textContent='Go!'
     startBtn.disabled=true
     capturePH('game_start',{duration_s:GAME_SECONDS})
@@ -344,24 +479,7 @@
     timer=setInterval(()=>{
       timeLeft--; update()
       if(timeLeft<=0){
-        clearInterval(timer); playing=false
-        statusEl.textContent=`Game over. Score: ${score}`
-        startBtn.disabled=false
-        showGameOver()
-        const prevHigh=getStoredInt('birdwatch_high_score',0)
-        const nextHigh=Math.max(prevHigh,score)
-        setStoredInt('birdwatch_high_score',nextHigh)
-        const gamesPlayed=getStoredInt('birdwatch_games_played',0)+1
-        setStoredInt('birdwatch_games_played',gamesPlayed)
-        const endProps={final_score:score}
-        if(trimmedName){
-          endProps.$set={
-            last_score:score,
-            high_score:nextHigh,
-            games_played_count:gamesPlayed
-          }
-        }
-        capturePH('game_over',endProps)
+        endGame('time')
       }
     },1000)
   }
@@ -385,6 +503,52 @@
   leaderboardBtn.onclick=()=>capturePH('leaderboard_opened',{source:'namebar'})
   updateNameLabel()
   render(); update()
+
+  function triggerSnakeEasterEgg(){
+    easterBannerEl.classList.remove('show')
+    void easterBannerEl.offsetWidth
+    easterBannerEl.classList.add('show')
+    const duration=RAIN_DURATION_MS
+    const interval=RAIN_INTERVAL_MS
+    const endAt=Date.now()+duration
+    const rainItems=[
+      {type:'img',value:'assets/SLJ-1.png'},
+      {type:'img',value:'assets/SLJ-2.png'},
+      {type:'img',value:'assets/SLJ-3.png'},
+      {type:'img',value:'assets/snakes-on-plane.png'},
+      {type:'emoji',value:'🐍'},
+      {type:'emoji',value:'🎉'}
+    ]
+    const spawn=()=>{
+      const item=rainItems[Math.floor(Math.random()*rainItems.length)]
+      const el=document.createElement('div')
+      el.className='rain-item'
+      const size=36+Math.random()*26
+      el.style.left=`${Math.random()*100}%`
+      el.style.animationDuration=`${2.6+Math.random()*2.2}s`
+      if(item.type==='img'){
+        const img=document.createElement('img')
+        img.src=item.value
+        img.alt='rain'
+        img.style.width=`${size+8}px`
+        img.style.height='auto'
+        el.appendChild(img)
+      }else{
+        el.style.fontSize=`${size}px`
+        el.textContent=item.value
+      }
+      rainEl.appendChild(el)
+      setTimeout(()=>el.remove(),4600)
+    }
+    const timer=setInterval(()=>{
+      if(Date.now()>=endAt){
+        clearInterval(timer)
+        return
+      }
+      spawn()
+      spawn()
+    },interval)
+  }
 </script>
 </body>
 </html>
