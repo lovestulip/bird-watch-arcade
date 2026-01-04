@@ -28,8 +28,9 @@ This game acts as a controlled environment for learning analytics properly.
 
 - 🦩 **Flamingo** — highest score  
 - 🕊️🦆🦅🦉🦜🦢🪿🐦‍⬛ **Other birds** — varied point values  
-- 🦤 **Dodo** — rare, triples your last bird points  
-- 🪺 **Nest** — doubles your last bird’s points (not the dodo)  
+- 🦤 **Dodo** — rare, triples your last bird points, starts a 10s fever, and adds +5s  
+- 🪺 **Nest** — doubles your last bird’s points (not the dodo); during fever it’s x5  
+- 🔥 **Fever** — lasts 10s, birds are 1.5x and nests are x5  
 - 🐍 **Snake** — resets your score to zero  
 
 Each game session lasts **30 seconds**.
@@ -53,6 +54,13 @@ The game explicitly tracks the following events using `posthog.capture()`:
 - `tap_dodo`
   - `points`
   - `score_after`
+  - `time_bonus_s`
+- `fever_started`
+  - `score_at_start`
+  - `time_left`
+- `fever_ended`
+  - `score_at_end`
+  - `time_left`
 - `snake_cheat_unlocked`
   - `score_after`
 - `game_over`
