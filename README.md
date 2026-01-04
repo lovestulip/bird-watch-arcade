@@ -46,9 +46,11 @@ The game explicitly tracks the following events using `posthog.capture()`:
 - `tap_bird`
   - `bird`
   - `score_after`
+  - `fever_active`
 - `tap_nest`
   - `points`
   - `score_after`
+  - `fever_active`
 - `tap_snake`
   - `score_after`
 - `tap_dodo`
