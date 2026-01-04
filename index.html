@@ -71,6 +71,24 @@
       font-size:12px; padding:8px 10px;
     }
     .status{font-size:13px;color:var(--muted)}
+    .fever-indicator{
+      margin-left:10px;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.6px;
+      background:rgba(251,191,36,.18);
+      border:1px solid rgba(251,191,36,.5);
+      color:#b45309;
+      display:none;
+    }
+    .fever-indicator.show{display:inline-flex}
+    .fever-indicator.pulse{animation:feverPulse .9s ease-in-out infinite}
+    @keyframes feverPulse{
+      0%,100%{transform:scale(1); box-shadow:0 0 0 rgba(251,191,36,.35)}
+      50%{transform:scale(1.06); box-shadow:0 0 16px rgba(251,191,36,.6)}
+    }
     .consent{font-size:12.5px;color:var(--muted);margin-top:8px}
     .namebar{
       display:flex; gap:8px; align-items:center;
@@ -198,6 +216,19 @@
     @keyframes rainFall{
       to{transform:translateY(120vh) rotate(20deg)}
     }
+    .fever-flame{
+      position:absolute; left:50%; top:50%;
+      transform:translate(-50%,-50%);
+      font-size:140px;
+      opacity:0;
+      animation:feverBurst 2.2s ease-out forwards;
+      filter:drop-shadow(0 18px 30px rgba(15,23,42,.25));
+    }
+    @keyframes feverBurst{
+      0%{opacity:0;transform:translate(-50%,-40%) scale(.7)}
+      15%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+      100%{opacity:0;transform:translate(-50%,-60%) scale(1.4)}
+    }
   </style>
 </head>
 
@@ -219,7 +250,10 @@
       <div>
         <button class="btn" id="start">Start (30s)</button>
       </div>
-      <div class="status" id="status">Ready.</div>
+      <div>
+        <span class="status" id="status">Ready.</span>
+        <span class="fever-indicator" id="feverIndicator">FEVER</span>
+      </div>
     </div>
     <div class="consent">
       Optional: enter a name to appear on the leaderboard. We only create a PostHog person profile when you do.
@@ -254,15 +288,20 @@
     crow:14
   }
   const DODO_MULTIPLIER = 3
-  const DODO_CHANCE = 0.015
+  const DODO_CHANCE = 0.025
   const SNAKE_STREAK_FOR_CHEAT = 28
   const RAIN_DURATION_MS = 9000
   const RAIN_INTERVAL_MS = 160
+  const FEVER_DURATION_MS = 10000
+  const FEVER_BIRD_BONUS = 1.5
+  const FEVER_NEST_MULTIPLIER = 5
+  const DODO_TIME_BONUS = 5
 
   let score=0, timeLeft=GAME_SECONDS, playing=false
   let lastBirdPoints=0, lastPointsAwarded=0, lastThing='—', timer=null
   let animating=false
   let snakeStreak=0, cheatUsed=false
+  let feverUntil=0, feverTimer=null, feverPulseTimer=null
 
   const $=id=>document.getElementById(id)
   const scoreEl=$('score'), timeEl=$('time'), lastEl=$('last')
@@ -270,6 +309,7 @@
   const gameOverEl=$('gameover')
   const rainEl=$('rain')
   const easterBannerEl=$('easterBanner')
+  const feverIndicatorEl=$('feverIndicator')
   const nameLabelEl=$('nameLabel')
   const nameBtn=$('nameBtn')
   const anonBtn=$('anonBtn')
@@ -339,10 +379,48 @@
     gameOverEl.classList.add('show')
   }
 
+  function showFeverFlame(){
+    const flame=document.createElement('div')
+    flame.className='fever-flame'
+    flame.textContent='🔥'
+    rainEl.appendChild(flame)
+    setTimeout(()=>flame.remove(),2200)
+  }
+
+  function startFever(){
+    feverUntil=Date.now()+FEVER_DURATION_MS
+    showFeverFlame()
+    feverIndicatorEl.classList.add('show')
+    feverIndicatorEl.classList.remove('pulse')
+    capturePH('fever_started',{score_at_start:score,time_left:timeLeft})
+    render()
+    if(feverTimer) clearTimeout(feverTimer)
+    if(feverPulseTimer) clearTimeout(feverPulseTimer)
+    feverPulseTimer=setTimeout(()=>{
+      if(isFeverActive()) feverIndicatorEl.classList.add('pulse')
+    },Math.max(0,FEVER_DURATION_MS-5000))
+    const remaining=Math.max(0,feverUntil-Date.now())
+    feverTimer=setTimeout(()=>{
+      feverIndicatorEl.classList.remove('show')
+      feverIndicatorEl.classList.remove('pulse')
+      capturePH('fever_ended',{score_at_end:score,time_left:timeLeft})
+      if(playing) render()
+    },remaining+20)
+  }
+
+  function isFeverActive(){
+    return Date.now()<feverUntil
+  }
+
   function endGame(reason){
     playing=false
     clearInterval(timer)
     startBtn.disabled=false
+    if(feverTimer) clearTimeout(feverTimer)
+    if(feverPulseTimer) clearTimeout(feverPulseTimer)
+    feverIndicatorEl.classList.remove('show')
+    feverIndicatorEl.classList.remove('pulse')
+    feverUntil=0
     const message = reason === 'cheat' ? `Cheat unlocked! Score: ${score}` : `Game over. Score: ${score}`
     statusEl.textContent = message
     if(reason === 'cheat'){
@@ -399,10 +477,19 @@
 
   function render(){
     gridEl.innerHTML=''
+    const fever=isFeverActive()
     tiles.forEach(t=>{
       const d=document.createElement('div')
       d.className='tile'
-      d.innerHTML=`<div class="emoji">${t.e}</div><div class="tag">${t.l}</div>`
+      let label=t.l
+      if(fever){
+        if(t.k==='nest'){
+          label=`x${FEVER_NEST_MULTIPLIER}`
+        }else if(POINTS[t.k]){
+          label=`+${Math.round(POINTS[t.k]*FEVER_BIRD_BONUS)}`
+        }
+      }
+      d.innerHTML=`<div class="emoji">${t.e}</div><div class="tag">${label}</div>`
       d.onclick=()=>clickTile(d,t)
       gridEl.appendChild(d)
     })
@@ -428,7 +515,8 @@
     }
     else if(t.k==='nest'){
       snakeStreak=0
-      const pts=lastBirdPoints*2||0
+      const multiplier=isFeverActive()?FEVER_NEST_MULTIPLIER:2
+      const pts=lastBirdPoints*multiplier||0
       score+=pts; lastPointsAwarded=pts; lastThing=`🪺 +${pts}`
       pop(el,'+'+pts)
       capturePH('tap_nest',{points:pts,score_after:score})
@@ -438,14 +526,18 @@
       const pts=Math.round(lastBirdPoints*DODO_MULTIPLIER)
       score+=pts; lastPointsAwarded=pts; lastThing=`🦤 +${pts}`
       pop(el,'+'+pts)
-      capturePH('tap_dodo',{points:pts,score_after:score})
+      timeLeft+=DODO_TIME_BONUS
+      startFever()
+      capturePH('tap_dodo',{points:pts,score_after:score,time_bonus_s:DODO_TIME_BONUS})
     }
     else{
       snakeStreak=0
       const base=POINTS[t.k]||0
-      score+=base; lastBirdPoints=base; lastPointsAwarded=base
-      lastThing=`${t.e} +${base}`
-      pop(el,'+'+base)
+      const feverBoost=isFeverActive()?FEVER_BIRD_BONUS:1
+      const boosted=Math.round(base*feverBoost)
+      score+=boosted; lastBirdPoints=base; lastPointsAwarded=boosted
+      lastThing=`${t.e} +${boosted}`
+      pop(el,'+'+boosted)
       capturePH('tap_bird',{bird:t.k,score_after:score})
     }
 
@@ -471,6 +563,11 @@
     ensureIdentified(trimmedName)
     playing=true; score=0; timeLeft=GAME_SECONDS; lastBirdPoints=0; lastPointsAwarded=0; lastThing='—'
     snakeStreak=0; cheatUsed=false
+    feverUntil=0
+    if(feverTimer) clearTimeout(feverTimer)
+    feverIndicatorEl.classList.remove('show')
+    if(feverPulseTimer) clearTimeout(feverPulseTimer)
+    feverIndicatorEl.classList.remove('pulse')
     update(); statusEl.textContent='Go!'
     startBtn.disabled=true
     capturePH('game_start',{duration_s:GAME_SECONDS})

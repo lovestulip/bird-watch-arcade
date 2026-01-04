@@ -8,6 +8,10 @@ All notable changes to this project will be documented here.
 - Snake streak cheat now ends the game at 5000 points with a rain effect.
 - Added a secret cheat code :shh:
 
+## [1.1.1] - 2026-01-03
+- Dodo now triggers fever mode, adds time, and boosts bird/nest scoring.
+- Fever status now shows with a pulsing badge near the status text.
+
 ## [1.0.1] - 2026-01-02
 - Replaced the name popup with an inline name field.
 - Reset PostHog identity when switching names or entering Guest mode.
