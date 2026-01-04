@@ -11,6 +11,7 @@ All notable changes to this project will be documented here.
 ## [1.1.1] - 2026-01-03
 - Dodo now triggers fever mode, adds time, and boosts bird/nest scoring.
 - Fever status now shows with a pulsing badge near the status text.
+- Added fever context to tap events for clearer analysis.
 
 ## [1.0.1] - 2026-01-02
 - Replaced the name popup with an inline name field.

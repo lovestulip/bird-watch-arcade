@@ -519,7 +519,7 @@
       const pts=lastBirdPoints*multiplier||0
       score+=pts; lastPointsAwarded=pts; lastThing=`🪺 +${pts}`
       pop(el,'+'+pts)
-      capturePH('tap_nest',{points:pts,score_after:score})
+      capturePH('tap_nest',{points:pts,score_after:score,fever_active:isFeverActive()})
     }
     else if(t.k==='dodo'){
       snakeStreak=0
@@ -538,7 +538,7 @@
       score+=boosted; lastBirdPoints=base; lastPointsAwarded=boosted
       lastThing=`${t.e} +${boosted}`
       pop(el,'+'+boosted)
-      capturePH('tap_bird',{bird:t.k,score_after:score})
+      capturePH('tap_bird',{bird:t.k,score_after:score,fever_active:isFeverActive()})
     }
 
     update()
