@@ -72,6 +72,9 @@ The game explicitly tracks the following events using `posthog.capture()`:
     - `last_score`
     - `high_score`
     - `games_played_count`
+- `game_reset`
+  - `score_before_reset`
+  - `time_left`
 - `leaderboard_opened`
   - `source`
 
@@ -79,6 +82,12 @@ These events are **manually defined in the game logic** and are separate from
 PostHog’s default autocapture events (pageviews, web vitals, etc.).
 
 Autocapture is disabled, but pageviews are enabled.
+
+---
+
+## 🚩 Feature Flags
+
+- `ff_audio_mode` — enables subtle tap sounds and a gentle game-over tune.
 
 ---
 
