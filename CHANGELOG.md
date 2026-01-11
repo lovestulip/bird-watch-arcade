@@ -13,6 +13,11 @@ All notable changes to this project will be documented here.
 - Fever status now shows with a pulsing badge near the status text.
 - Added fever context to tap events for clearer analysis.
 
+## [1.1.2] - 2026-01-04
+- Added a reset button with `game_reset` tracking.
+- Added streak and per-name high score to the HUD.
+- Added feature-flagged audio mode (`ff_audio_mode`).
+
 ## [1.0.1] - 2026-01-02
 - Replaced the name popup with an inline name field.
 - Reset PostHog identity when switching names or entering Guest mode.

@@ -40,8 +40,12 @@
     .rules{font-size:13.5px;color:var(--muted);margin-top:6px}
 
     .hud{
-      display:grid; grid-template-columns:repeat(3,1fr);
+      display:grid; grid-template-columns:repeat(5,1fr);
       gap:10px; margin:14px 0;
+    }
+    @media (max-width:480px){
+      .hud{grid-template-columns:repeat(2,1fr)}
+      .topbar{flex-direction:column; align-items:flex-start; gap:8px}
     }
     .pill{
       background:var(--card); border:1px solid var(--stroke);
@@ -243,12 +247,15 @@
     <div class="pill">Score <span id="score">0</span></div>
     <div class="pill">Time <span id="time">30</span>s</div>
     <div class="pill">Last <span id="last">—</span></div>
+    <div class="pill">Streak <span id="streak">0</span></div>
+    <div class="pill">High <span id="high">0</span></div>
   </div>
 
   <div class="panel">
     <div class="topbar">
       <div>
         <button class="btn" id="start">Start (30s)</button>
+        <button class="btn secondary" id="reset">Reset</button>
       </div>
       <div>
         <span class="status" id="status">Ready.</span>
@@ -302,10 +309,14 @@
   let animating=false
   let snakeStreak=0, cheatUsed=false
   let feverUntil=0, feverTimer=null, feverPulseTimer=null
+  let clickStreak=0
+  let audioModeEnabled=false
+  let audioContext=null
 
   const $=id=>document.getElementById(id)
-  const scoreEl=$('score'), timeEl=$('time'), lastEl=$('last')
+  const scoreEl=$('score'), timeEl=$('time'), lastEl=$('last'), streakEl=$('streak'), highEl=$('high')
   const gridEl=$('grid'), statusEl=$('status'), startBtn=$('start')
+  const resetBtn=$('reset')
   const gameOverEl=$('gameover')
   const rainEl=$('rain')
   const easterBannerEl=$('easterBanner')
@@ -335,6 +346,7 @@
     updateNameLabel()
     nameInput.value = ''
     if(window.posthog?.reset) posthog.reset()
+    update()
   }
 
   function ensureIdentified(name){
@@ -377,6 +389,59 @@
     gameOverEl.classList.remove('show')
     void gameOverEl.offsetWidth
     gameOverEl.classList.add('show')
+  }
+
+  function ensureAudioContext(){
+    if(!audioModeEnabled) return null
+    if(audioContext) return audioContext
+    const Ctx=window.AudioContext||window.webkitAudioContext
+    if(!Ctx) return null
+    audioContext=new Ctx()
+    return audioContext
+  }
+
+  function playClickSound(){
+    const ctx=ensureAudioContext()
+    if(!ctx) return
+    const osc=ctx.createOscillator()
+    const gain=ctx.createGain()
+    osc.type='triangle'
+    osc.frequency.value=520
+    gain.gain.value=0
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    const now=ctx.currentTime
+    gain.gain.linearRampToValueAtTime(0.04, now+0.01)
+    gain.gain.exponentialRampToValueAtTime(0.001, now+0.08)
+    osc.start(now)
+    osc.stop(now+0.09)
+  }
+
+  function playGameOverTune(){
+    const ctx=ensureAudioContext()
+    if(!ctx) return
+    const notes=[392,440,523,659]
+    const now=ctx.currentTime
+    notes.forEach((freq,i)=>{
+      const osc=ctx.createOscillator()
+      const gain=ctx.createGain()
+      osc.type='sine'
+      osc.frequency.value=freq
+      gain.gain.value=0
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      const start=now+(i*0.16)
+      gain.gain.linearRampToValueAtTime(0.05, start+0.02)
+      gain.gain.exponentialRampToValueAtTime(0.001, start+0.14)
+      osc.start(start)
+      osc.stop(start+0.16)
+    })
+  }
+
+  function getHighScoreKey(){
+    const name=getUsername()
+    if(name) return `birdwatch_high_score_${name.toLowerCase()}`
+    return 'birdwatch_high_score_guest'
   }
 
   function showFeverFlame(){
@@ -429,9 +494,9 @@
       gameOverEl.textContent = 'Game Over'
       showGameOver()
     }
-    const prevHigh=getStoredInt('birdwatch_high_score',0)
+    const prevHigh=getStoredInt(getHighScoreKey(),0)
     const nextHigh=Math.max(prevHigh,score)
-    setStoredInt('birdwatch_high_score',nextHigh)
+    setStoredInt(getHighScoreKey(),nextHigh)
     const gamesPlayed=getStoredInt('birdwatch_games_played',0)+1
     setStoredInt('birdwatch_games_played',gamesPlayed)
     const endProps={final_score:score, reason}
@@ -444,6 +509,7 @@
       }
     }
     capturePH('game_over',endProps)
+    playGameOverTune()
   }
 
   function deal(){
@@ -498,10 +564,12 @@
   function clickTile(el,t){
     if(!playing || animating) return
     animating=true
+    playClickSound()
 
     if(t.k==='snake'){
       score=0; lastBirdPoints=0; lastPointsAwarded=0; lastThing='🐍 reset'
       snakeStreak+=1
+      clickStreak=0
       shake(el); pop(el,'RESET',true)
       capturePH('tap_snake',{score_after:0})
       if(snakeStreak>=SNAKE_STREAK_FOR_CHEAT && !cheatUsed){
@@ -515,6 +583,7 @@
     }
     else if(t.k==='nest'){
       snakeStreak=0
+      clickStreak+=1
       const multiplier=isFeverActive()?FEVER_NEST_MULTIPLIER:2
       const pts=lastBirdPoints*multiplier||0
       score+=pts; lastPointsAwarded=pts; lastThing=`🪺 +${pts}`
@@ -523,6 +592,7 @@
     }
     else if(t.k==='dodo'){
       snakeStreak=0
+      clickStreak+=1
       const pts=Math.round(lastBirdPoints*DODO_MULTIPLIER)
       score+=pts; lastPointsAwarded=pts; lastThing=`🦤 +${pts}`
       pop(el,'+'+pts)
@@ -532,6 +602,7 @@
     }
     else{
       snakeStreak=0
+      clickStreak+=1
       const base=POINTS[t.k]||0
       const feverBoost=isFeverActive()?FEVER_BIRD_BONUS:1
       const boosted=Math.round(base*feverBoost)
@@ -555,14 +626,18 @@
     scoreEl.textContent=score
     timeEl.textContent=timeLeft
     lastEl.textContent=lastThing
+    streakEl.textContent=clickStreak
+    highEl.textContent=getStoredInt(getHighScoreKey(),0)
   }
 
   function start(){
     if(playing) return
     const trimmedName = getUsername()
     ensureIdentified(trimmedName)
+    ensureAudioContext()
     playing=true; score=0; timeLeft=GAME_SECONDS; lastBirdPoints=0; lastPointsAwarded=0; lastThing='—'
     snakeStreak=0; cheatUsed=false
+    clickStreak=0
     feverUntil=0
     if(feverTimer) clearTimeout(feverTimer)
     feverIndicatorEl.classList.remove('show')
@@ -582,6 +657,23 @@
   }
 
   startBtn.onclick=start
+  resetBtn.onclick=()=>{
+    capturePH('game_reset', {score_before_reset: score, time_left: timeLeft})
+    playing=false
+    clearInterval(timer)
+    startBtn.disabled=false
+    if(feverTimer) clearTimeout(feverTimer)
+    if(feverPulseTimer) clearTimeout(feverPulseTimer)
+    feverIndicatorEl.classList.remove('show')
+    feverIndicatorEl.classList.remove('pulse')
+    feverUntil=0
+    score=0; timeLeft=GAME_SECONDS; lastBirdPoints=0; lastPointsAwarded=0; lastThing='—'
+    clickStreak=0
+    statusEl.textContent='Ready.'
+    tiles=deal()
+    render()
+    update()
+  }
   nameBtn.onclick=()=>{
     const trimmed = nameInput.value.trim()
     if(trimmed){
@@ -595,11 +687,19 @@
     }
     updateNameLabel()
     ensureIdentified(trimmed)
+    update()
   }
   anonBtn.onclick=setAnonymous
   leaderboardBtn.onclick=()=>capturePH('leaderboard_opened',{source:'namebar'})
   updateNameLabel()
   render(); update()
+
+  if(window.posthog?.onFeatureFlags){
+    posthog.onFeatureFlags(()=>{
+      audioModeEnabled=!!posthog.isFeatureEnabled('ff_audio_mode')
+      capturePH('feature_flags_loaded',{audio_mode:audioModeEnabled})
+    })
+  }
 
   function triggerSnakeEasterEgg(){
     easterBannerEl.classList.remove('show')
