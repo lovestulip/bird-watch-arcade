@@ -523,6 +523,27 @@
     })
   }
 
+  function playCheatSting(){
+    const ctx=ensureAudioContext()
+    if(!ctx) return
+    const notes=[659,784,880,988,1047,988,880,784,659,784,880,988,1175,1047,988,880,784,880,988,1047,1175,1047,988,880]
+    const now=ctx.currentTime
+    notes.forEach((freq,i)=>{
+      const osc=ctx.createOscillator()
+      const gain=ctx.createGain()
+      osc.type='sawtooth'
+      osc.frequency.value=freq
+      gain.gain.value=0
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      const start=now+(i*0.06)
+      gain.gain.linearRampToValueAtTime(0.045, start+0.01)
+      gain.gain.exponentialRampToValueAtTime(0.001, start+0.09)
+      osc.start(start)
+      osc.stop(start+0.1)
+    })
+  }
+
   function getHighScoreKey(){
     const name=getUsername()
     if(name) return `birdwatch_high_score_${name.toLowerCase()}`
@@ -665,6 +686,7 @@
         score=5000
         lastThing='🐍 cheat +5000'
         triggerSnakeEasterEgg()
+        playCheatSting()
         capturePH('snake_cheat_unlocked',{score_after:score})
         endGame('cheat')
       }
