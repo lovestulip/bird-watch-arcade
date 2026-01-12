@@ -40,7 +40,7 @@
     .rules{font-size:13.5px;color:var(--muted);margin-top:6px}
 
     .hud{
-      display:grid; grid-template-columns:repeat(5,1fr);
+      display:grid; grid-template-columns:repeat(3,1fr);
       gap:10px; margin:14px 0;
     }
     @media (max-width:480px){
@@ -246,8 +246,6 @@
   <div class="hud">
     <div class="pill">Score <span id="score">0</span></div>
     <div class="pill">Time <span id="time">30</span>s</div>
-    <div class="pill">Last <span id="last">—</span></div>
-    <div class="pill">Streak <span id="streak">0</span></div>
     <div class="pill">High <span id="high">0</span></div>
   </div>
 
@@ -305,17 +303,16 @@
   const DODO_TIME_BONUS = 5
 
   let score=0, timeLeft=GAME_SECONDS, playing=false
-  let lastBirdPoints=0, lastPointsAwarded=0, lastThing='—', timer=null
+  let lastBirdPoints=0, timer=null
   let animating=false
   let snakeStreak=0, cheatUsed=false
   let feverUntil=0, feverTimer=null, feverPulseTimer=null
-  let clickStreak=0
   let audioModeEnabled=false
   let audioContext=null
   let feverSoundTimer=null
 
   const $=id=>document.getElementById(id)
-  const scoreEl=$('score'), timeEl=$('time'), lastEl=$('last'), streakEl=$('streak'), highEl=$('high')
+  const scoreEl=$('score'), timeEl=$('time'), highEl=$('high')
   const gridEl=$('grid'), statusEl=$('status'), startBtn=$('start')
   const resetBtn=$('reset')
   const gameOverEl=$('gameover')
@@ -676,15 +673,13 @@
     playTapSound(t.k)
 
     if(t.k==='snake'){
-      score=0; lastBirdPoints=0; lastPointsAwarded=0; lastThing='🐍 reset'
+      score=0; lastBirdPoints=0
       snakeStreak+=1
-      clickStreak=0
       shake(el); pop(el,'RESET',true)
       capturePH('tap_snake',{score_after:0})
       if(snakeStreak>=SNAKE_STREAK_FOR_CHEAT && !cheatUsed){
         cheatUsed=true
         score=5000
-        lastThing='🐍 cheat +5000'
         triggerSnakeEasterEgg()
         playCheatSting()
         capturePH('snake_cheat_unlocked',{score_after:score})
@@ -693,18 +688,16 @@
     }
     else if(t.k==='nest'){
       snakeStreak=0
-      clickStreak+=1
       const multiplier=isFeverActive()?FEVER_NEST_MULTIPLIER:2
       const pts=lastBirdPoints*multiplier||0
-      score+=pts; lastPointsAwarded=pts; lastThing=`🪺 +${pts}`
+      score+=pts
       pop(el,'+'+pts)
       capturePH('tap_nest',{points:pts,score_after:score,fever_active:isFeverActive()})
     }
     else if(t.k==='dodo'){
       snakeStreak=0
-      clickStreak+=1
       const pts=Math.round(lastBirdPoints*DODO_MULTIPLIER)
-      score+=pts; lastPointsAwarded=pts; lastThing=`🦤 +${pts}`
+      score+=pts
       pop(el,'+'+pts)
       timeLeft+=DODO_TIME_BONUS
       startFever()
@@ -712,12 +705,10 @@
     }
     else{
       snakeStreak=0
-      clickStreak+=1
       const base=POINTS[t.k]||0
       const feverBoost=isFeverActive()?FEVER_BIRD_BONUS:1
       const boosted=Math.round(base*feverBoost)
-      score+=boosted; lastBirdPoints=base; lastPointsAwarded=boosted
-      lastThing=`${t.e} +${boosted}`
+      score+=boosted; lastBirdPoints=base
       pop(el,'+'+boosted)
       capturePH('tap_bird',{bird:t.k,score_after:score,fever_active:isFeverActive()})
     }
@@ -735,8 +726,6 @@
   function update(){
     scoreEl.textContent=score
     timeEl.textContent=timeLeft
-    lastEl.textContent=lastThing
-    streakEl.textContent=clickStreak
     highEl.textContent=getStoredInt(getHighScoreKey(),0)
   }
 
@@ -745,9 +734,8 @@
     const trimmedName = getUsername()
     ensureIdentified(trimmedName)
     ensureAudioContext()
-    playing=true; score=0; timeLeft=GAME_SECONDS; lastBirdPoints=0; lastPointsAwarded=0; lastThing='—'
+    playing=true; score=0; timeLeft=GAME_SECONDS; lastBirdPoints=0
     snakeStreak=0; cheatUsed=false
-    clickStreak=0
     feverUntil=0
     if(feverTimer) clearTimeout(feverTimer)
     feverIndicatorEl.classList.remove('show')
@@ -778,8 +766,7 @@
     feverIndicatorEl.classList.remove('show')
     feverIndicatorEl.classList.remove('pulse')
     feverUntil=0
-    score=0; timeLeft=GAME_SECONDS; lastBirdPoints=0; lastPointsAwarded=0; lastThing='—'
-    clickStreak=0
+    score=0; timeLeft=GAME_SECONDS; lastBirdPoints=0
     statusEl.textContent='Ready.'
     tiles=deal()
     render()
