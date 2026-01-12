@@ -312,6 +312,8 @@
   let audioModeEnabled=false
   let audioContext=null
   let feverSoundTimer=null
+  let snakeToneVariant='control'
+  let snakeToneOverride=null
 
   const $=id=>document.getElementById(id)
   const scoreEl=$('score'), timeEl=$('time'), lastEl=$('last'), highEl=$('high')
@@ -326,6 +328,11 @@
   const anonBtn=$('anonBtn')
   const nameInput=$('nameInput')
   const leaderboardBtn=$('leaderboardBtn')
+  const urlParams=new URLSearchParams(window.location.search)
+  const snakeToneParam=(urlParams.get('snakeTone')||'').toLowerCase()
+  if(snakeToneParam === 'rising' || snakeToneParam === 'control'){
+    snakeToneOverride=snakeToneParam
+  }
 
   function capturePH(e,p){
     if(window.posthog?.capture) window.posthog.capture(e,p||{})
@@ -417,9 +424,20 @@
     osc.stop(now+0.09)
   }
 
-  function playTapSound(kind){
+  function getSnakeToneFrequency(count){
+    const steps=Math.max(1,SNAKE_STREAK_FOR_CHEAT)
+    const capped=Math.max(1,Math.min(count,steps))
+    const start=140
+    const end=720
+    const t=(capped-1)/(steps-1 || 1)
+    return Math.round(start + (end-start)*t)
+  }
+
+  function playTapSound(kind, snakeCount){
     if(kind==='snake'){
-      playClickSound(220,0.05)
+      const variant=snakeToneOverride || snakeToneVariant
+      const freq=variant==='rising' ? getSnakeToneFrequency(snakeCount||1) : 220
+      playClickSound(freq,0.05)
       return
     }
     if(kind==='dodo'){
@@ -672,7 +690,7 @@
   function clickTile(el,t){
     if(!playing || animating) return
     animating=true
-    playTapSound(t.k)
+    playTapSound(t.k, t.k==='snake' ? snakeStreak+1 : 0)
 
     if(t.k==='snake'){
       score=0; lastBirdPoints=0; lastThing='🐍 reset'
@@ -799,7 +817,13 @@
   if(window.posthog?.onFeatureFlags){
     posthog.onFeatureFlags(()=>{
       audioModeEnabled=!!posthog.isFeatureEnabled('ff_audio_mode')
-      capturePH('feature_flags_loaded',{audio_mode:audioModeEnabled})
+      const snakeVariant=posthog.getFeatureFlag('exp_snake_tone')
+      if(typeof snakeVariant === 'string'){
+        snakeToneVariant=snakeVariant
+      }else{
+        snakeToneVariant=snakeVariant ? 'rising' : 'control'
+      }
+      capturePH('feature_flags_loaded',{audio_mode:audioModeEnabled,snake_tone_variant:snakeToneVariant})
     })
   }
 
