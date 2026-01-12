@@ -312,6 +312,7 @@
   let clickStreak=0
   let audioModeEnabled=false
   let audioContext=null
+  let feverSoundTimer=null
 
   const $=id=>document.getElementById(id)
   const scoreEl=$('score'), timeEl=$('time'), lastEl=$('last'), streakEl=$('streak'), highEl=$('high')
@@ -400,21 +401,105 @@
     return audioContext
   }
 
-  function playClickSound(){
+  function playClickSound(frequency,volume=0.04){
     const ctx=ensureAudioContext()
     if(!ctx) return
     const osc=ctx.createOscillator()
     const gain=ctx.createGain()
     osc.type='triangle'
-    osc.frequency.value=520
+    osc.frequency.value=frequency
     gain.gain.value=0
     osc.connect(gain)
     gain.connect(ctx.destination)
     const now=ctx.currentTime
-    gain.gain.linearRampToValueAtTime(0.04, now+0.01)
+    gain.gain.linearRampToValueAtTime(volume, now+0.01)
     gain.gain.exponentialRampToValueAtTime(0.001, now+0.08)
     osc.start(now)
     osc.stop(now+0.09)
+  }
+
+  function playTapSound(kind){
+    if(kind==='snake'){
+      playClickSound(220,0.05)
+      return
+    }
+    if(kind==='dodo'){
+      const ctx=ensureAudioContext()
+      if(!ctx) return
+      const notes=[523,659,784]
+      const now=ctx.currentTime
+      notes.forEach((freq,i)=>{
+        const osc=ctx.createOscillator()
+        const gain=ctx.createGain()
+        osc.type='triangle'
+        osc.frequency.value=freq
+        gain.gain.value=0
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        const start=now+(i*0.06)
+        gain.gain.linearRampToValueAtTime(0.05, start+0.01)
+        gain.gain.exponentialRampToValueAtTime(0.001, start+0.08)
+        osc.start(start)
+        osc.stop(start+0.09)
+      })
+      return
+    }
+    if(kind==='nest'){
+      const ctx=ensureAudioContext()
+      if(!ctx) return
+      const notes=[784,988,1175]
+      const now=ctx.currentTime
+      notes.forEach((freq,i)=>{
+        const osc=ctx.createOscillator()
+        const gain=ctx.createGain()
+        osc.type='sine'
+        osc.frequency.value=freq
+        gain.gain.value=0
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        const start=now+(i*0.05)
+        gain.gain.linearRampToValueAtTime(0.035, start+0.01)
+        gain.gain.exponentialRampToValueAtTime(0.001, start+0.12)
+        osc.start(start)
+        osc.stop(start+0.13)
+      })
+      return
+    }
+    playClickSound(520,0.04)
+  }
+
+  function startFeverSound(){
+    if(!audioModeEnabled) return
+    if(feverSoundTimer) return
+    const ctx=ensureAudioContext()
+    if(!ctx) return
+    const riff=[523,659,784,659,523,659,880,659]
+    let step=0
+    const playNote=()=>{
+      if(!audioModeEnabled) return
+      const osc=ctx.createOscillator()
+      const gain=ctx.createGain()
+      osc.type='triangle'
+      osc.frequency.value=riff[step%riff.length]
+      gain.gain.value=0
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      const now=ctx.currentTime
+      gain.gain.linearRampToValueAtTime(0.035, now+0.02)
+      gain.gain.exponentialRampToValueAtTime(0.001, now+0.18)
+      osc.start(now)
+      osc.stop(now+0.2)
+      step+=1
+    }
+    playNote()
+    feverSoundTimer=setInterval(playNote,220)
+  }
+
+  function stopFeverSound(){
+    if(feverSoundTimer){
+      clearInterval(feverSoundTimer)
+      feverSoundTimer=null
+    }
   }
 
   function playGameOverTune(){
@@ -455,6 +540,7 @@
   function startFever(){
     feverUntil=Date.now()+FEVER_DURATION_MS
     showFeverFlame()
+    startFeverSound()
     feverIndicatorEl.classList.add('show')
     feverIndicatorEl.classList.remove('pulse')
     capturePH('fever_started',{score_at_start:score,time_left:timeLeft})
@@ -468,6 +554,7 @@
     feverTimer=setTimeout(()=>{
       feverIndicatorEl.classList.remove('show')
       feverIndicatorEl.classList.remove('pulse')
+      stopFeverSound()
       capturePH('fever_ended',{score_at_end:score,time_left:timeLeft})
       if(playing) render()
     },remaining+20)
@@ -481,6 +568,7 @@
     playing=false
     clearInterval(timer)
     startBtn.disabled=false
+    stopFeverSound()
     if(feverTimer) clearTimeout(feverTimer)
     if(feverPulseTimer) clearTimeout(feverPulseTimer)
     feverIndicatorEl.classList.remove('show')
@@ -564,7 +652,7 @@
   function clickTile(el,t){
     if(!playing || animating) return
     animating=true
-    playClickSound()
+    playTapSound(t.k)
 
     if(t.k==='snake'){
       score=0; lastBirdPoints=0; lastPointsAwarded=0; lastThing='🐍 reset'
@@ -662,6 +750,7 @@
     playing=false
     clearInterval(timer)
     startBtn.disabled=false
+    stopFeverSound()
     if(feverTimer) clearTimeout(feverTimer)
     if(feverPulseTimer) clearTimeout(feverPulseTimer)
     feverIndicatorEl.classList.remove('show')
