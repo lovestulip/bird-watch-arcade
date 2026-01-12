@@ -18,6 +18,10 @@ All notable changes to this project will be documented here.
 - Added streak and per-name high score to the HUD.
 - Added feature-flagged audio mode (`ff_audio_mode`).
 
+## [1.1.3] - 2026-01-05
+- Simplified the HUD to score, time, and high score for better mobile layout.
+- Expanded `ff_audio_mode` with distinct sounds for birds, snake, nest, dodo, fever, and cheat unlock.
+
 ## [1.0.1] - 2026-01-02
 - Replaced the name popup with an inline name field.
 - Reset PostHog identity when switching names or entering Guest mode.
