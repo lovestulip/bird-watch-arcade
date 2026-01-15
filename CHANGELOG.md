@@ -6,6 +6,9 @@ All notable changes to this project will be documented here.
 - Simplified the HUD to score, time, and high score for better mobile layout.
 - Expanded `ff_audio_mode` with distinct sounds for birds, snake, nest, dodo, fever, and cheat unlock.
 - Restored the last-score HUD pill and tightened mobile HUD spacing.
+ 
+## [1.1.4] - 2026-01-06
+- Enabled PostHog autocapture for full default web interaction tracking.
 
 ## [1.1.2] - 2026-01-04
 - Added a reset button with `game_reset` tracking.

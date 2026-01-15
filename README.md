@@ -79,9 +79,9 @@ The game explicitly tracks the following events using `posthog.capture()`:
   - `source`
 
 These events are **manually defined in the game logic** and are separate from
-PostHog’s default autocapture events (pageviews, web vitals, etc.).
+PostHog’s default autocapture events (pageviews, web vitals, clicks, etc.).
 
-Autocapture is disabled, but pageviews are enabled.
+Autocapture and pageviews are enabled.
 
 ---
 
