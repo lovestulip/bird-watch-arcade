@@ -52,6 +52,8 @@
       background:var(--card); border:1px solid var(--stroke);
       border-radius:999px; padding:10px;
       display:flex; gap:6px; justify-content:center;
+      position:relative;
+      overflow:hidden;
       font-weight:700;
     }
 
@@ -246,7 +248,7 @@
 
   <div class="hud">
     <div class="pill">Score <span id="score">0</span></div>
-    <div class="pill">Time <span id="time">30</span>s</div>
+    <div class="pill" id="timePill">Time <span id="time">30</span>s</div>
     <div class="pill">Last <span id="last">—</span></div>
     <div class="pill">High <span id="high">0</span></div>
   </div>
@@ -295,7 +297,7 @@
     crow:14
   }
   const DODO_MULTIPLIER = 3
-  const DODO_CHANCE = 0.05
+  const DODO_CHANCE = 0.08
   const SNAKE_STREAK_FOR_CHEAT = 28
   const RAIN_DURATION_MS = 9000
   const RAIN_INTERVAL_MS = 160
@@ -313,7 +315,6 @@
   let audioContext=null
   let feverSoundTimer=null
   let snakeToneVariant='control'
-  let snakeToneOverride=null
 
   const $=id=>document.getElementById(id)
   const scoreEl=$('score'), timeEl=$('time'), lastEl=$('last'), highEl=$('high')
@@ -328,11 +329,7 @@
   const anonBtn=$('anonBtn')
   const nameInput=$('nameInput')
   const leaderboardBtn=$('leaderboardBtn')
-  const urlParams=new URLSearchParams(window.location.search)
-  const snakeToneParam=(urlParams.get('snakeTone')||'').toLowerCase()
-  if(snakeToneParam === 'rising' || snakeToneParam === 'control'){
-    snakeToneOverride=snakeToneParam
-  }
+  const timePill=$('timePill')
 
   function capturePH(e,p){
     if(window.posthog?.capture) window.posthog.capture(e,p||{})
@@ -435,8 +432,7 @@
 
   function playTapSound(kind, snakeCount){
     if(kind==='snake'){
-      const variant=snakeToneOverride || snakeToneVariant
-      const freq=variant==='rising' ? getSnakeToneFrequency(snakeCount||1) : 220
+      const freq=snakeToneVariant==='rising' ? getSnakeToneFrequency(snakeCount||1) : 220
       playClickSound(freq,0.05)
       return
     }
@@ -721,6 +717,7 @@
       score+=pts; lastThing=`🦤 +${pts}`
       pop(el,'+'+pts)
       timeLeft+=DODO_TIME_BONUS
+      if(timePill) pop(timePill,`+${DODO_TIME_BONUS}s`)
       startFever()
       capturePH('tap_dodo',{points:pts,score_after:score,time_bonus_s:DODO_TIME_BONUS})
     }
