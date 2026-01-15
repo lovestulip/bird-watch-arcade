@@ -79,9 +79,18 @@ The game explicitly tracks the following events using `posthog.capture()`:
   - `source`
 
 These events are **manually defined in the game logic** and are separate from
-PostHog’s default autocapture events (pageviews, web vitals, clicks, etc.).
+PostHog’s default autocapture events. Autocapture is enabled and includes:
+- Interaction (clicks, taps, and other user interactions)
+- Navigation (pageviews, pageleaves, and screen views)
+- Clipboard (copy and paste actions)
+- Heatmap (where users interact most)
+- Dead clicks (clicks that do not trigger a change)
+- Exception (errors and crashes)
+- Session (session replay)
+- Web vitals (LCP, FID, CLS, FCP)
+- Lifecycle (app launches, backgrounds, and updates)
 
-Autocapture and pageviews are enabled.
+Reference: https://posthog.com/docs/product-analytics/autocapture
 
 ---
 
