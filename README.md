@@ -183,4 +183,4 @@ Seeing that event confirms PostHog initialization works, the network request
 is not blocked, and your project is receiving events from this build.
 
 ---
-Have fun — and watch out for snakes 🐍 🐍 🐍   
+Have fun — and watch out for snakes 🐍 🐍 🐍 ✨
