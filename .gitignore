@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor directories and files
+.vscode/
+.idea/
+
+# Local env files (just in case you ever add one)
+.env
+.env.local
+.env.*.local
