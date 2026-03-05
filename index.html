@@ -284,7 +284,7 @@
 </div>
 
 <script>
-  const GAME_SECONDS = 30
+  let GAME_SECONDS = 30
   const POINTS = {
     flamingo:25,
     dove:9,
@@ -831,7 +831,9 @@
       }else{
         snakeToneVariant=snakeVariant ? 'rising' : 'control'
       }
-      capturePH('feature_flags_loaded',{audio_mode:audioModeEnabled,snake_tone_variant:snakeToneVariant})
+      const durationVariant=posthog.getFeatureFlag('exp_game_duration')
+      if(durationVariant==='test') GAME_SECONDS=45
+      capturePH('feature_flags_loaded',{audio_mode:audioModeEnabled,snake_tone_variant:snakeToneVariant,game_duration_variant:durationVariant??'control'})
     })
   }
 
