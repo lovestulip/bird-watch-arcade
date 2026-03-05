@@ -310,6 +310,7 @@
   let lastBirdPoints=0, lastThing='—', timer=null
   let animating=false
   let snakeStreak=0, cheatUsed=false
+  let birdsT=0, snakesH=0, feverCount=0
   let feverUntil=0, feverTimer=null, feverPulseTimer=null
   let audioModeEnabled=false
   let audioContext=null
@@ -577,6 +578,7 @@
     startFeverSound()
     feverIndicatorEl.classList.add('show')
     feverIndicatorEl.classList.remove('pulse')
+    feverCount+=1
     capturePH('fever_started',{score_at_start:score,time_left:timeLeft})
     render()
     if(feverTimer) clearTimeout(feverTimer)
@@ -621,7 +623,14 @@
     setStoredInt(getHighScoreKey(),nextHigh)
     const gamesPlayed=getStoredInt('birdwatch_games_played',0)+1
     setStoredInt('birdwatch_games_played',gamesPlayed)
-    const endProps={final_score:score, reason}
+    const scoreBracket = score<100?'low':score<300?'mid':'high'
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent)
+    const endProps={
+      final_score:score, reason,
+      birds_tapped:birdsT, snakes_hit:snakesH,
+      fever_triggered:feverCount, score_bracket:scoreBracket,
+      is_mobile:isMobile
+    }
     const trimmedName = getUsername()
     if(trimmedName){
       endProps.$set={
@@ -690,7 +699,7 @@
 
     if(t.k==='snake'){
       score=0; lastBirdPoints=0; lastThing='🐍 reset'
-      snakeStreak+=1
+      snakeStreak+=1; snakesH+=1
       shake(el); pop(el,'RESET',true)
       capturePH('tap_snake',{score_after:0})
       if(snakeStreak>=SNAKE_STREAK_FOR_CHEAT && !cheatUsed){
@@ -727,6 +736,7 @@
       const feverBoost=isFeverActive()?FEVER_BIRD_BONUS:1
       const boosted=Math.round(base*feverBoost)
       score+=boosted; lastBirdPoints=base; lastThing=`${t.e} +${boosted}`
+      birdsT+=1
       pop(el,'+'+boosted)
       capturePH('tap_bird',{bird:t.k,score_after:score,fever_active:isFeverActive()})
     }
@@ -755,6 +765,7 @@
     ensureAudioContext()
     playing=true; score=0; timeLeft=GAME_SECONDS; lastBirdPoints=0; lastThing='—'
     snakeStreak=0; cheatUsed=false
+    birdsT=0; snakesH=0; feverCount=0
     feverUntil=0
     if(feverTimer) clearTimeout(feverTimer)
     feverIndicatorEl.classList.remove('show')

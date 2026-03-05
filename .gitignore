@@ -11,3 +11,6 @@
 .env
 .env.local
 .env.*.local
+
+# Demo data seeder — local only, do not push
+seed.js
