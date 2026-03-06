@@ -832,7 +832,11 @@
         snakeToneVariant=snakeVariant ? 'rising' : 'control'
       }
       const durationVariant=posthog.getFeatureFlag('exp_game_duration')
-      if(durationVariant==='test') GAME_SECONDS=45
+      if(durationVariant==='test'){
+        GAME_SECONDS=45
+        timeEl.textContent='45'
+        startBtn.textContent='Start (45s)'
+      }
       capturePH('feature_flags_loaded',{audio_mode:audioModeEnabled,snake_tone_variant:snakeToneVariant,game_duration_variant:durationVariant??'control'})
     })
   }
